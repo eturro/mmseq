@@ -7,6 +7,8 @@ ifdef DEBUG
   MACROS += -DDEBUG
 endif
 
+BINDIR=../bin
+
 CC = gcc
 CXX = g++
 LIBS = -lgsl -lgslcblas -lboost_regex -lbam -lboost_iostreams -lz -llapack -lblas -larmadillo -lgfortran
@@ -39,31 +41,28 @@ endif
   
 
 .PHONY : all
-all : mmseq bam2hits extract_transcripts hitstools t2g_hits mmcollapse postdiff mmdiff
+all : mmseq bam2hits extract_transcripts hitstools t2g_hits mmcollapse mmdiff
 
 mmseq : sokal.o uh.o hitsio.o mmseq.cpp
-	$(CXX) ${MACROS} $(CXXFLAGS) ${OMP} ${OPT} $^ -o $@${SUFFIX} ${LIBS}
+	$(CXX) ${MACROS} $(CXXFLAGS) ${OMP} ${OPT} $^ -o ${BINDIR}/$@${SUFFIX} ${LIBS}
 
 bam2hits : fasta.o hitsio.o bam2hits.cpp
-	${CXX} ${MACROS} $(CXXFLAGS) ${OMP} ${OPT} $^ -o $@${SUFFIX} ${LIBS}
+	${CXX} ${MACROS} $(CXXFLAGS) ${OMP} ${OPT} $^ -o ${BINDIR}/$@${SUFFIX} ${LIBS}
 
 extract_transcripts : fasta.o extract_transcripts.cpp
-	${CXX} ${MACROS} $(CXXFLAGS) ${OPT} $^ -o $@${SUFFIX}
+	${CXX} ${MACROS} $(CXXFLAGS) ${OPT} $^ -o ${BINDIR}/$@${SUFFIX}
 
 hitstools: hitsio.o hitstools.cpp
-	$(CXX) ${MACROS} $(CXXFLAGS) ${OMP} ${OPT} $^ -o $@${SUFFIX} ${LIBS}
+	$(CXX) ${MACROS} $(CXXFLAGS) ${OMP} ${OPT} $^ -o ${BINDIR}/$@${SUFFIX} ${LIBS}
 
 t2g_hits : t2g_hits.cpp
-	${CXX} ${MACROS} $(CXXFLAGS) ${OPT} $^ -o $@${SUFFIX}
-
-postdiff : postdiff.cpp
-	${CXX} ${MACROS} ${CXXFLAGS} ${OPT} $^ -o $@${SUFFIX}
+	${CXX} ${MACROS} $(CXXFLAGS) ${OPT} $^ -o ${BINDIR}/$@${SUFFIX}
 
 mmcollapse: uh.o sokal.o mmcollapse.cpp
-	${CXX} ${MACROS} ${CXXFLAGS} ${OMP} ${OPT} $^ -o $@${SUFFIX} ${LIBS}
+	${CXX} ${MACROS} ${CXXFLAGS} ${OMP} ${OPT} $^ -o ${BINDIR}/$@${SUFFIX} ${LIBS}
 
 mmdiff: bms.o mmdiff.cpp
-	${CXX} ${MACROS} ${CXXFLAGS} ${OMP} ${OPTSAFE} $^ -o $@${SUFFIX} ${LIBS}
+	${CXX} ${MACROS} ${CXXFLAGS} ${OMP} ${OPTSAFE} $^ -o ${BINDIR}/$@${SUFFIX} ${LIBS}
 
 sokal.o : sokal.cc sokal.hh
 	$(CXX) ${OPT} -c sokal.cc
@@ -82,4 +81,4 @@ bms.o: bms.cpp bms.hpp
 .PHONY : clean
 
 clean :
-	rm -f mmseq bam2hits extract_transcripts hitstools t2g_hits mmcollapse postdiff mmseq${CLEANSUFFIX} bam2hits${CLEANSUFFIX} extract_transcripts${CLEANSUFFIX} hitstools${CLEANSUFFIX} t2g_hits${CLEANSUFFIX} mmcollapse${CLEANSUFFIX} postdiff${CLEANSUFFIX} mmdiff${CLEANSUFFIX} *.o
+	rm -f ${BINDIR}/mmseq ${BINDIR}/bam2hits ${BINDIR}/extract_transcripts ${BINDIR}/hitstools ${BINDIR}/t2g_hits ${BINDIR}/mmcollapse ${BINDIR}/mmseq${CLEANSUFFIX} ${BINDIR}/bam2hits${CLEANSUFFIX} ${BINDIR}/extract_transcripts${CLEANSUFFIX} ${BINDIR}/hitstools${CLEANSUFFIX} ${BINDIR}/t2g_hits${CLEANSUFFIX} ${BINDIR}/mmcollapse${CLEANSUFFIX} ${BINDIR}/mmdiff${CLEANSUFFIX} *.o
