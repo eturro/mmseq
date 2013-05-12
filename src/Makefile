@@ -81,4 +81,4 @@ bms.o: bms.cpp bms.hpp
 .PHONY : clean
 
 clean :
-	rm -f ${BINDIR}/mmseq ${BINDIR}/bam2hits ${BINDIR}/extract_transcripts ${BINDIR}/hitstools ${BINDIR}/t2g_hits ${BINDIR}/mmcollapse ${BINDIR}/mmseq${CLEANSUFFIX} ${BINDIR}/bam2hits${CLEANSUFFIX} ${BINDIR}/extract_transcripts${CLEANSUFFIX} ${BINDIR}/hitstools${CLEANSUFFIX} ${BINDIR}/t2g_hits${CLEANSUFFIX} ${BINDIR}/mmcollapse${CLEANSUFFIX} ${BINDIR}/mmdiff${CLEANSUFFIX} *.o
+	rm -f ${BINDIR}/mmseq ${BINDIR}/bam2hits ${BINDIR}/extract_transcripts ${BINDIR}/hitstools ${BINDIR}/t2g_hits ${BINDIR}/mmcollapse ${BINDIR}/mmseq${CLEANSUFFIX} ${BINDIR}/bam2hits${CLEANSUFFIX} ${BINDIR}/extract_transcripts${CLEANSUFFIX} ${BINDIR}/hitstools${CLEANSUFFIX} ${BINDIR}/t2g_hits${CLEANSUFFIX} ${BINDIR}/mmcollapse${CLEANSUFFIX} ${BINDIR}/mmdiff${CLEANSUFFIX} *.o *.hpp.gch
