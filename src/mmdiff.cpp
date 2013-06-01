@@ -746,7 +746,7 @@ int main(int argc, char** argv) {
     if(endsWith(filenames[f],".mmseq")) {
       int found = filenames[f].find_last_of(".");
       int found2 = filenames[f].find_last_of("/");
-      found2 = found2==string::npos ? 0 : found2;
+      found2 = found2==string::npos ? -1 : found2;
       samplenames[f]=filenames[f].substr(found2+1,found - found2 -1);
     }
     cout << "mu_" << samplenames[f] << "\t";
