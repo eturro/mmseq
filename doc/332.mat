@@ -1,0 +1,24 @@
+# M; no. of rows = no. of observations
+0
+0
+0
+0
+0
+0
+0
+0
+# C; no. of rows = no. of observations and no. of columns = 2 (one for each model)
+0 0
+0 0
+0 0
+0 1
+0 1
+0 1
+0 2
+0 2
+# P0(collapsed); no. of rows = no. of classes for model 0
+1
+# P1(collapsed); no. of rows = no. of classes for model 1
+1 0 0
+0 1 0
+0 0 1

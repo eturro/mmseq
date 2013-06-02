@@ -59,16 +59,16 @@ If the insert size distribution overlaps the read length, trim back the reads to
     bowtie -a --best --strata -S -m 100 -X 500 --chunkmbs 256 -p 8 Homo_sapiens.GRCh37.70.ref_transcripts \
       -1 asample_1.fq -2 asample_2.fq | samtools view -F 0xC -bS - | samtools sort -n - asample.namesorted
 
-- Always specify -a to ensure you get multi-mapping alignments
-- Suppress alignments for reads that map to a huge number of transcripts with the -m option (e.g. -m 100)
-- Adjust -I and -X according to the minimum and maximum insert size
+- Always specify `-a` to ensure you get multi-mapping alignments
+- Suppress alignments for reads that map to a huge number of transcripts with the `-m` option (e.g. `-m 100`)
+- Adjust `-X` according to the maximum insert size
 - If the reference FASTA file doesn't use the vertebrate Ensembl naming convention, then also specify `--fullref`
 - The read names must end with /1 or /2, not /3 or /4 (this can be corrected with `awk 'FNR % 4==1 { sub(/\/[34]$/, "/2") } { print }' secondreads.fq > secondreads-new.fq`).
-- If there are multiple FASTQ files from the same library, feed them all together to Bowtie in one go (separate the FASTQ file names with commas)
+- If there are multiple FASTQ files from the same library, feed them all together to Bowtie in one go (delimit the FASTQ file names with commas)
 - If you are getting many "Exhausted best-first chunk memory" warnings, try increasing `--chunkmbs` to 128 or 256.
 - If the read names contain spaces, make sure the substring up to the first space in each read is unique, as Bowtie strips anything after a space in a read name
 - The output BAM file must be sorted by read name.
-- With paired-end data, only pairs where both reads have been aligned are used, so might as well use the samtools `0xC` filtering flag above to reduce the size of the BAM file
+- With paired-end data, only pairs where both reads have been aligned are used, so might as well use the samtools `0xC` filtering flag as above to reduce the size of the BAM file
 
 #### Step 3: Map reads to transcript sets
 
@@ -81,28 +81,87 @@ If the insert size distribution overlaps the read length, trim back the reads to
 Description of output:
 
 - `asample.mmseq` contains a table with columns:
-    1.  feature_id: name of transcript
-    2.  log\_mu: **posterior mean of the log\_e expression parameter** (use this as your log expression measure)
-    3.  sd: posterior standard deviation of the log\_e expression parameter
-    4.  mcse: Monte Carlo standard error
-    5.  iact: integrated autocorrelation time
-    6.  effective\_length: effective transcript length
-    7.  true\_length: length of transcript sequence
-    8.  unique\_hits: number of reads uniquely mapping to the transcript
-    9.  mean\_proportion: posterior mean isoform/gene proportion
-    10.  mean\_probit\_proportion: posterior mean of the probit-transformed isoform/gene proportion
-    11.  sd\_probit\_proportion: posterior standard deviation of the probit-transformed isoform/gene proportion
-    12.  log\_mu\_em: log-scale transcript-level EM estimate
-    13.  observed: whether or not a feature has hits
-    14.  ntranscripts: number of isoforms for the gene of that transcript
+    1.  **feature\_id:** name of transcript
+    2.  **log\_mu:** posterior mean of the log\_e expression parameter (use this as your log expression measure)
+    3.  **sd:** posterior standard deviation of the log\_e expression parameter
+    4.  **mcse:** Monte Carlo standard error
+    5.  **iact:** integrated autocorrelation time
+    6.  **effective\_length:** effective transcript length
+    7.  **true\_length:** length of transcript sequence
+    8.  **unique\_hits:** number of reads uniquely mapping to the transcript
+    9.  **mean\_proportion:** posterior mean isoform/gene proportion
+    10.  **mean\_probit\_proportion:** posterior mean of the probit-transformed isoform/gene proportion
+    11.  **sd\_probit\_proportion:** posterior standard deviation of the probit-transformed isoform/gene proportion
+    12.  **log\_mu\_em:** log-scale transcript-level EM estimate
+    13.  **observed:** whether or not a feature has hits
+    14.  **ntranscripts:** number of isoforms for the gene of that transcript
 
-- `asample.identical.mmseq`: as above but aggregated over transcripts sharing the same sequence (these estimates are usually far more precise than the corresponding individual estimates in the transcript-level table); log\_mu\_em and proportion summaries are not available for aggregates
-- `asample.gene.mmseq`: as above but aggregated over genes and the effective\_length is an average of isoform effective lengths weighted by their expression
+- `asample.identical.mmseq`: as above but aggregated over transcripts sharing the same sequence (these estimates are usually far more precise than the corresponding individual estimates in the transcript-level table); note that `log\_mu\_em` and proportion summaries are not available for aggregates
+- `asample.gene.mmseq`: as above but aggregated over genes and the `effective\_length` is an average of isoform effective lengths weighted by their expression
 - Various other files (`asample.*.trace_gibbs.gz`, `asample.M` and `asample.k`) containing more detailed output
 
-These steps operate on a sample-by-sample basis and the expression estimates are roughly proportional to the RNA concentrations in each sample. Some scaling of the estimates may be required to make them comparable across biological replicates and conditions. The posterior standard deviations capture the uncertainty due to Poisson counting noise and due to the ambiguity in the mappings between reads and transcripts. The biological variance between samples can only be discerned with the use of biological replicates (see section on differential expression below).
+These steps operate on a sample-by-sample basis and the expression estimates are roughly proportional to the RNA concentrations in each sample. Some scaling of the estimates may be required to make them comparable across biological replicates and conditions. The posterior standard deviations capture the uncertainty due to both Poisson counting noise and the additional ambiguity in the mappings between reads and transcripts. The biological variance across samples can only be discerned with the use of biological replicates (see section on [differential expression](#differential-expression-analysis) below).
 
 ## Differential expression analysis
+
+The `mmdiff` binary performs model comparison using the posterior summaries (`log_mu` and `sd` or `mean_probit_proportion` and `sd_probit_proportion`) saved in the MMSEQ tables. For each feature, two models must be specified in a matrices file. Alternatively, for simple differential expression (a model specifying two or more conditions vs. a model specifying a single condition), the `-de` convenience option may be used. E.g. for a 2 vs. 2 gene-level comparison, one could run:
+
+    mmdiff -de 2 2 cond1rep1.gene.mmseq cond1rep2.gene.mmseq cond2rep1.gene.mmseq cond2rep2.gene.mmseq > out.mmdiff
+
+The prior probability that the second model is true may be specified with `-p FLOAT` (default: 0.1). In order to use the probit-transformed isoform usage proportions for inference (in order to check for differential isoform usage), set the option `-useprops`.
+
+The models are regression based and can be specified in a file containing four matrices:
+
+- M is a model-independent covariate matrix
+- C maps observations to classes for each model
+- P0(collapsed) is a collapsed matrix (i.e. distinct rows) defining statistical model 0
+- P1(collapsed) is a collapsed matrix defining statistical model 1
+
+If a model has no classes (i.e. just an intercept term), define the P matrix to be simply `1`. E.g. for transcript-level differential expression between two groups of four samples without extraneous variables, the following command and matrices file would be appropriate (note, this is equivalent to specifying `-de 4 4`):
+
+    mmdiff -m matrices_file cond1rep1.mmseq cond1rep2.mmseq cond1rep3.mmseq cond1rep4.mmseq \
+                            cond2rep1.mmseq cond2rep2.mmseq cond2rep3.mmseq cond2rep4.mmseq > out.mmdiff
+
+where the matrices file contains:
+
+    # M; no. of rows = no. of observations
+    0
+    0
+    0
+    0
+    0
+    0
+    0
+    0
+    # C; no. of rows = no. of observations and no. of columns = 2 (one for each model)
+    0 0
+    0 0
+    0 0
+    0 0
+    0 1
+    0 1
+    0 1
+    0 1
+    # P0(collapsed); no. of rows = no. of classes for model 0
+    1
+    # P1(collapsed); no. of rows = no. of classes for model 1
+    .5
+    -.5
+
+For a three-way differential expression analysis with three, three and two observations per group respectively, [this matrices file](https://raw.github.com/eturro/mmseq/master/doc/332.mat) would be appropriate.
+
+In order to assess whether the log fold change between group A and group B is different to the log fold change between group C and group D, assuming there are two observations per group, [this matrices file](https://raw.github.com/eturro/mmseq/master/doc/dod2.mat) would be appropriate.
+
+For further advice on setting up the matrices file for a particular study design, do not hesitate to contact the corresponding author.
+
+Description of the output:
+
+1.  **feature\_id:** the name of the feature (e.g. Ensembl transcript ID)
+2.  **bayes\_factor:** the Bayes factor in favour of the second model
+3.  **posterior\_probability:** the posterior probability in favour of the second model (the prior probability is recorded in a # comment at the top of the file)
+4.  **alpha0 and alpha1:** posterior mean estimates of the intercepts for each model
+5.  **eta0\_0, eta0\_1..., eta1\_0, eta1\_1...:** posterior mean estimates of the regression coefficients under each of the models
+6.  **mu\_sample1, mu\_sample2,... sd\_sample1, sd\_sample2,...:** the data, i.e. the posterior means and standard deviations used as the outcomes
 
 ## Collapsing transcripts
 
