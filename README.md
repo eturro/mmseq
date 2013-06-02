@@ -116,7 +116,7 @@ These steps operate on a sample-by-sample basis and the expression estimates are
 
 ## Differential expression analysis
 
-### MMDIFF
+#### Flexible model comparison using MMDIFF
 
 The `mmdiff` binary performs model comparison using the posterior summaries (`log_mu` and `sd` or `mean_probit_proportion` and `sd_probit_proportion`) saved in the MMSEQ tables. For each feature, two models must be specified in a matrices file. Alternatively, for simple differential expression (a model specifying two or more conditions vs. a model specifying a single condition), the `-de` convenience option may be used. E.g. for a 2 vs. 2 gene-level comparison, one could run:
 
@@ -177,7 +177,7 @@ Description of the output:
 5.  **eta0\_0, eta0\_1..., eta1\_0, eta1\_1...:** posterior mean estimates of the regression coefficients under each of the models
 6.  **mu\_sample1, mu\_sample2,... sd\_sample1, sd\_sample2,...:** the data, i.e. the posterior means and standard deviations used as the outcomes
 
-### DESeq or edgeR
+#### DESeq or edgeR
 
 The MMSEQ expression estimates are roughly in FPKM units (fragments per kilobase of transcript per million mapped reads or read pairs), which makes different samples broadly comparable. You may read in the output from multiple samples using the `readmmseq.R` R script included in the `misc` directory (requires R &ge; 2.9). The `readmmseq` function takes five optional arguments:
 
@@ -189,7 +189,7 @@ The MMSEQ expression estimates are roughly in FPKM units (fragments per kilobase
 
 The function returns a list in which columns have been collated from the MMSEQ files. In addition, the `counts` slot contains estimated counts for each feature.
 
-To test for differential expression with [edgeR](http://dx.doi.org/10.1186/gb-2010-11-3-r25) or [DESeq](http://dx.doi.org/10.1186/gb-2010-11-10-r106), the estimated counts need to be used. E.g., to test for DE between two groups of two samples, run the following code in R from the directory containing the mmseq output files:</p>
+To test for differential expression with [edgeR](http://dx.doi.org/10.1186/gb-2010-11-3-r25) or [DESeq](http://dx.doi.org/10.1186/gb-2010-11-10-r106) instead of using [mmdiff](#mmdiff), the estimated counts need to be used. E.g., to test for DE between two groups of two samples, run the following code in R from the directory containing the mmseq output files:
 
     source("/path/to/readmmseq.R")
     library(edgeR)
