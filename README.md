@@ -31,6 +31,18 @@ If you use the `mmdiff` or `mmcollapse` programs, please also cite:
 
 ## Installation
 
+Download [the latest release of MMSEQ](https://github.com/eturro/mmseq/archive/latest.zip), unzip and add the `bin` directory to your `PATH`. E.g.:
+
+    wget https://github.com/eturro/mmseq/archive/mmseq_latest.zip
+    unzip mmseq_latest.zip && cd mmseq_latest
+    export PATH=`pwd`:$PATH
+
+You might want to strip the suffix from the binaries. E.g., under Linux:
+
+    for f in `ls *-linux`; do
+      mv $f `basename $f -linux`
+    done
+
 ## Estimating expression levels
 
 #### Input files:
@@ -104,6 +116,8 @@ These steps operate on a sample-by-sample basis and the expression estimates are
 
 ## Differential expression analysis
 
+### MMDIFF
+
 The `mmdiff` binary performs model comparison using the posterior summaries (`log_mu` and `sd` or `mean_probit_proportion` and `sd_probit_proportion`) saved in the MMSEQ tables. For each feature, two models must be specified in a matrices file. Alternatively, for simple differential expression (a model specifying two or more conditions vs. a model specifying a single condition), the `-de` convenience option may be used. E.g. for a 2 vs. 2 gene-level comparison, one could run:
 
     mmdiff -de 2 2 cond1rep1.gene.mmseq cond1rep2.gene.mmseq cond2rep1.gene.mmseq cond2rep2.gene.mmseq > out.mmdiff
@@ -163,13 +177,58 @@ Description of the output:
 5.  **eta0\_0, eta0\_1..., eta1\_0, eta1\_1...:** posterior mean estimates of the regression coefficients under each of the models
 6.  **mu\_sample1, mu\_sample2,... sd\_sample1, sd\_sample2,...:** the data, i.e. the posterior means and standard deviations used as the outcomes
 
+### DESeq or edgeR
+
+The MMSEQ expression estimates are roughly in FPKM units (fragments per kilobase of transcript per million mapped reads or read pairs), which makes different samples broadly comparable. You may read in the output from multiple samples using the `readmmseq.R` R script included in the `misc` directory (requires R &ge; 2.9). The `readmmseq` function takes five optional arguments:
+
+-  `mmseq_files`: vector of `.mmseq` files to read in
+-  `sample_names`: vector of strings containing the sample names
+-  `normalize`: logical scalar specifying whether to normalise the log expression values and log count equivalents for each sample by their median deviation from the mean (like DESeq)
+-  `partition`: a string containing two suffixes corresponding to two different classes of haplotypes separated by a "|" character (e.g. "\_BL6|\_CAST"); each haplotype class is then treated as a separate sample 
+-  `common_set`: vector specifying the subset of features to use
+
+The function returns a list in which columns have been collated from the MMSEQ files. In addition, the `counts` slot contains estimated counts for each feature.
+
+To test for differential expression with [edgeR](http://dx.doi.org/10.1186/gb-2010-11-3-r25) or [DESeq](http://dx.doi.org/10.1186/gb-2010-11-10-r106), the estimated counts need to be used. E.g., to test for DE between two groups of two samples, run the following code in R from the directory containing the mmseq output files:</p>
+
+    source("/path/to/readmmseq.R")
+    library(edgeR)
+    library(DESeq) # version >=1.5
+
+    ms = readmmseq()
+    tab = ms$counts[apply(ms$counts,1,function(x) any(round(x)>0)),] # only keep features with counts
+
+    # edgeR 
+    d = DGEList(counts = tab, group = c("group1", "group1", "group2","group2"))
+    d = estimateCommonDisp(d)
+    de.edgeR = exactTest(d)
+
+    # DESeq
+    cds = newCountDataSet(round(tab), c("group1", "group1", "group2", "group2") )
+    sizeFactors(cds) = rep(1, dim(cds)[2])
+    cds = estimateDispersions(cds)
+    de.DESeq = nbinomTest(cds,"group1", "group2")
+
 ## Collapsing transcripts
+It is possible to collapse sets of transcripts based on posterior correlation estimates with the `mmcollapse` binary. The overall precision of the expression estimates for a collapsed set is usually much greater than for the individual component transcripts, which typically share important structural features (many shared exons, etc). The `mmcollapse` binary uses the output of `mmseq` to do the collapsing:
+
+    mmcollapse basename1 basename2...
+
+Here, `basename` is the name of the `mmseq` output files without the suffixes (such as `.mmseq` and `.gene.mmseq`). The command creates a set of new transcript-level MMSEQ files with the suffix `.collapsed.mmseq`, which can be used to perform more powerful transcript-level [differential analysis](#differential-expression-analysis).
 
 ## Reference files
 - ***Homo sapiens:*** download transcriptome FASTA files containing cDNA and ncRNA transcript sequences (but excluding alternative haplotype/supercontig entries) for the following versions of Ensembl: [64](http://haemgen.haem.cam.ac.uk/eturro/hs_transcripts/Homo_sapiens.GRCh37.64.ref_transcripts.fa.gz), [68](http://haemgen.haem.cam.ac.uk/eturro/hs_transcripts/Homo_sapiens.GRCh37.68.ref_transcripts.fa.gz), [70](http://haemgen.haem.cam.ac.uk/eturro/hs_transcripts/Homo_sapiens.GRCh37.70.ref_transcripts.fa.gz).
 - ***Mus musculus:*** genome and transcriptome FASTA files based on the GRCm38 build and the [March 2013 SNP and indel calls](ftp://ftp-mouse.sanger.ac.uk/REL-1303-SNPs_Indels-GRCm38/) from the [Wellcome Trust Mouse Genomes Project](http://www.sanger.ac.uk/resources/mouse/genomes/) are [available here](http://haemgen.haem.cam.ac.uk/eturro/REL-1303-SNPs_Indels-GRCm38/) for the following strains: C57BL6, 129P2, 129S1, 129S5, AJ, AKRJ, BALBcJ, C3HHeJ, C57BL6NJ, CASTEiJ, CBAJ, DBA2J, FVBNJ, LPJ, NODShiLtJ, NZOHlLtJ, PWKPhJ, SPRETEiJ and WSBEiJ. For F1 data, append "\_STRAIN" to each transcript and gene ID in the transcriptome FASTA headers (where "STRAIN" is the name of the strain) and concatenate the two relevant files into one hybrid FASTA. Then align the F1 reads to the hybrid reference as per the documentation above. For analysis with `mmdiff`, the `*.mmseq` files should be split into two, one file for each strain (use `head` to extract the headers and `grep STRAIN` to extract the rows for a particular strain).
 
 ## Building from source 
+
+The package source can be obtained by cloning the GitHub repository and running `make` from the `src` directory:
+
+     git clone https://github.com/eturro/mmseq.git
+     cd mmseq/src
+     make
+
+The binaries are placed in the `bin` directory.
 
 ## Software usage
 
