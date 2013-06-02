@@ -33,19 +33,19 @@ If you use the `mmdiff` or `mmcollapse` programs, please also cite:
 
 ## Estimating expression levels
 
-### Input files:
+#### Input files:
 - FASTQ files containing reads from the experiment
 - A FASTA file containing transcript sequences to align to ([find ready-made files](#reference-files))
 
 The example commands below assume that the FASTQ files are `asample_1.fq` and `asample_2.fq` (paired-end) and the FASTA file is `Homo_sapiens.GRCh37.70.ref_transcripts.fa`.
 
-### Step 1: Index the reference transcript sequences
+#### Step 1: Index the reference transcript sequences
 
     bowtie-build --offrate 3 Homo_sapiens.GRCh37.70.ref_transcripts.fa Homo_sapiens.GRCh37.70.ref_transcripts 
 
 (It is advisable to use a lower-than-default value for --offrate (such as 2 or 3) as long as the resulting index fits in memory.)
 
-### Step 2a: Trim out adapter sequences if necessary
+#### Step 2a: Trim out adapter sequences if necessary
 If the insert size distribution overlaps the read length, trim back the reads to exclude adapter sequences. [Trim Galore!](http://www.bioinformatics.babraham.ac.uk/projects/trim_galore/) works well:
 
 <pre><code>trim_galore --phred64 -q 15 -a AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC<span style="color:blue">TAACAAG</span>ATCTCGTATGCCGTCTTCTGCTTG \
@@ -54,7 +54,7 @@ If the insert size distribution overlaps the read length, trim back the reads to
 
 (TruSeq index highlighted in blue.)
 
-### Step 2b: Align reads with Bowtie 1 (not Bowtie 2)
+#### Step 2b: Align reads with Bowtie 1 (not Bowtie 2)
 
     bowtie -a --best --strata -S -m 100 -X 500 --chunkmbs 256 -p 8 Homo_sapiens.GRCh37.70.ref_transcripts \
       -1 asample_1.fq -2 asample_2.fq | samtools view -F 0xC -bS - | samtools sort -n - asample.namesorted
@@ -70,11 +70,11 @@ If the insert size distribution overlaps the read length, trim back the reads to
 - The output BAM file must be sorted by read name.
 - With paired-end data, only pairs where both reads have been aligned are used, so might as well use the samtools `0xC` filtering flag above to reduce the size of the BAM file
 
-### Step 3: Map reads to transcript sets
+#### Step 3: Map reads to transcript sets
 
     bam2hits Homo_sapiens.GRCh37.70.ref_transcripts.fa asample.namesorted.bam > asample.hits
 
-### Step 4: Obtain expression estimates
+#### Step 4: Obtain expression estimates
 
     mmseq asample.hits asample
 
@@ -96,11 +96,11 @@ Description of output:
     13.  observed: whether or not a feature has hits
     14.  ntranscripts: number of isoforms for the gene of that transcript
 
-- asample.identical.mmseq: as above but aggregated over transcripts sharing the same sequence (these estimates are usually far more precise than the corresponding individual estimates in the transcript-level table); log\_mu\_em and proportion summaries are not available for aggregates
-- asample.gene.mmseq: as above but aggregated over genes and the effective\_length is an average of isoform effective lengths weighted by their expression
-- Various other files (`output_base.*.trace_gibbs.gz`, `output_base.M` and `output_base.k`) containing more detailed output
+- `asample.identical.mmseq`: as above but aggregated over transcripts sharing the same sequence (these estimates are usually far more precise than the corresponding individual estimates in the transcript-level table); log\_mu\_em and proportion summaries are not available for aggregates
+- `asample.gene.mmseq`: as above but aggregated over genes and the effective\_length is an average of isoform effective lengths weighted by their expression
+- Various other files (`asample.*.trace_gibbs.gz`, `asample.M` and `asample.k`) containing more detailed output
 
-These steps operate on a sample-by-sample basis, and thus the expression estimates are roughly proportional to the RNA concentrations in each sample. Some scaling of the estimates may be required to make them comparable across biological replicates and conditions. The posterior standard deviations capture the uncertainty due to Poisson counting noise and due to the ambiguity in the mappings between reads and transcripts. The biological variance between samples can only be discerned with the use of biological replicates (see section on differential expression below).
+These steps operate on a sample-by-sample basis and the expression estimates are roughly proportional to the RNA concentrations in each sample. Some scaling of the estimates may be required to make them comparable across biological replicates and conditions. The posterior standard deviations capture the uncertainty due to Poisson counting noise and due to the ambiguity in the mappings between reads and transcripts. The biological variance between samples can only be discerned with the use of biological replicates (see section on differential expression below).
 
 ## Differential expression analysis
 
