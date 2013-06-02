@@ -31,14 +31,15 @@ If you use the `mmdiff` or `mmcollapse` programs, please also cite:
 
 ## Installation
 
-Download [the latest release of MMSEQ](https://github.com/eturro/mmseq/archive/mmseq_latest.zip), unzip and add the `bin` directory to your `PATH`. E.g.:
+Download [the latest release of MMSEQ](https://github.com/eturro/mmseq/archive/latest.zip), unzip and add the `bin` directory to your `PATH`. E.g.:
 
-    wget https://github.com/eturro/mmseq/archive/mmseq_latest.zip
-    unzip mmseq_latest.zip && cd mmseq_latest
-    export PATH=`pwd`:$PATH
+    wget -O mmseq-latest.zip https://github.com/eturro/mmseq/archive/latest.zip
+    unzip mmseq-latest.zip && cd mmseq-latest
+    export PATH=`pwd`/bin:$PATH
 
 You might want to strip the suffix from the binaries. E.g., under Linux:
 
+    cd bin
     for f in `ls *-linux`; do
       mv $f `basename $f -linux`
     done
