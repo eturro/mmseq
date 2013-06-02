@@ -31,7 +31,7 @@ If you use the `mmdiff` or `mmcollapse` programs, please also cite:
 
 ## Installation
 
-Download [the latest release of MMSEQ](https://github.com/eturro/mmseq/archive/latest.zip), unzip and add the `bin` directory to your `PATH`. E.g.:
+Download [the latest release of MMSEQ](https://github.com/eturro/mmseq/archive/mmseq_latest.zip), unzip and add the `bin` directory to your `PATH`. E.g.:
 
     wget https://github.com/eturro/mmseq/archive/mmseq_latest.zip
     unzip mmseq_latest.zip && cd mmseq_latest
@@ -189,7 +189,7 @@ The MMSEQ expression estimates are roughly in FPKM units (fragments per kilobase
 
 The function returns a list in which columns have been collated from the MMSEQ files. In addition, the `counts` slot contains estimated counts for each feature.
 
-To test for differential expression with [edgeR](http://dx.doi.org/10.1186/gb-2010-11-3-r25) or [DESeq](http://dx.doi.org/10.1186/gb-2010-11-10-r106) instead of using [mmdiff](#mmdiff), the estimated counts need to be used. E.g., to test for DE between two groups of two samples, run the following code in R from the directory containing the mmseq output files:
+To test for differential expression with [edgeR](http://dx.doi.org/10.1186/gb-2010-11-3-r25) or [DESeq](http://dx.doi.org/10.1186/gb-2010-11-10-r106) instead of using [mmdiff](#flexible-model-comparison-using-mmdiff), the estimated counts need to be used. E.g., to test for DE between two groups of two samples, run the following code in R from the directory containing the mmseq output files:
 
     source("/path/to/readmmseq.R")
     library(edgeR)
