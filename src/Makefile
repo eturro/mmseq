@@ -18,10 +18,10 @@ OPTSAFE = -O2
 
 ifeq ($(shell echo `uname -s`),Darwin)
 #  CLEANSUFFIX = $(shell echo `cat VERSION`-`uname -s`-`ar -x /opt/local/lib/libgsl.a rng.o && file rng.o | sed -E 's/.*\ (.*)/\1/'`)
-  CLEANSUFFIX = $(shell echo -`cat VERSION`-`uname -s`-`uname -m`)
+   CLEANSUFFIX = -mac # $(shell echo -`cat VERSION`-`uname -s`-`uname -m`)
 endif
 ifeq ($(shell echo `uname -s`),Linux)
-  CLEANSUFFIX = $(shell echo -`cat VERSION`-`uname -s`-`uname -m`)
+  CLEANSUFFIX = -linux # $(shell echo -`cat VERSION`-`uname -s`-`uname -m`)
 endif
 ifdef STATIC
   CC += -static-libgcc 
