@@ -29,11 +29,15 @@ If you use the `mmdiff` or `mmcollapse` programs, please also cite:
 - Collapsing of transcripts with high levels of uncertainty into inferential units which can be estimated with reduced uncertainty
 - Multi-threaded C++ implementations
 
+## Installation
+
 ## Estimating expression levels
 
 ### Input files:
-- FASTQ files containing reads from the experiment (e.g. `asample_1.fq` and `asample_2.fq` paired-end filefs)
-- A FASTA file containing transcript sequences to align to ([find ready-made files](#reference-files)) (e.g. `Homo_sapiens.GRCh37.70.ref_transcripts.fa`)
+- FASTQ files containing reads from the experiment
+- A FASTA file containing transcript sequences to align to ([find ready-made files](#reference-files))
+
+The example commands below assume that the FASTQ files are `asample_1.fq` and `asample_2.fq` (paired-end) and the FASTA file is `Homo_sapiens.GRCh37.70.ref_transcripts.fa`.
 
 ### Step 1: Index the reference transcript sequences
 
@@ -63,7 +67,8 @@ If the insert size distribution overlaps the read length, trim back the reads to
 - If there are multiple FASTQ files from the same library, feed them all together to Bowtie in one go (separate the FASTQ file names with commas)
 - If you are getting many "Exhausted best-first chunk memory" warnings, try increasing `--chunkmbs` to 128 or 256.
 - If the read names contain spaces, make sure the substring up to the first space in each read is unique, as Bowtie strips anything after a space in a read name
-- The output BAM file must be sorted by read name. With paired-end data, only pairs where both reads have been aligned are used, so you might as well use the samtools `0xC` filtering flag above to reduce the size of the BAM file
+- The output BAM file must be sorted by read name.
+- With paired-end data, only pairs where both reads have been aligned are used, so might as well use the samtools `0xC` filtering flag above to reduce the size of the BAM file
 
 ### Step 3: Map reads to transcript sets
 
@@ -95,7 +100,7 @@ Description of output:
 - asample.gene.mmseq: as above but aggregated over genes and the effective\_length is an average of isoform effective lengths weighted by their expression
 - Various other files (`output_base.*.trace_gibbs.gz`, `output_base.M` and `output_base.k`) containing more detailed output
 
-MMSEQ operates on a sample-by-sample basis, and thus the expression estimates are roughly proportional to the RNA concentrations in each sample. Some scaling of the estimates may be required to make them comparable across biological replicates and conditions. The posterior standard deviations capture the uncertainty due to Poisson counting noise and due to the ambiguity in the mappings between reads and transcripts. The biological variance between samples can only be discerned with the use of biological replicates (see section on differential expression below).
+These steps operate on a sample-by-sample basis, and thus the expression estimates are roughly proportional to the RNA concentrations in each sample. Some scaling of the estimates may be required to make them comparable across biological replicates and conditions. The posterior standard deviations capture the uncertainty due to Poisson counting noise and due to the ambiguity in the mappings between reads and transcripts. The biological variance between samples can only be discerned with the use of biological replicates (see section on differential expression below).
 
 ## Differential expression analysis
 
@@ -103,9 +108,9 @@ MMSEQ operates on a sample-by-sample basis, and thus the expression estimates ar
 
 ## Reference files
 - ***Homo sapiens***: download transcriptome FASTA files containing cDNA and ncRNA transcript sequences (but excluding alternative haplotype/supercontig entries) for the following versions of Ensembl: [64](http://haemgen.haem.cam.ac.uk/eturro/hs_transcripts/Homo_sapiens.GRCh37.64.ref_transcripts.fa.gz), [68](http://haemgen.haem.cam.ac.uk/eturro/hs_transcripts/Homo_sapiens.GRCh37.68.ref_transcripts.fa.gz), [70](http://haemgen.haem.cam.ac.uk/eturro/hs_transcripts/Homo_sapiens.GRCh37.70.ref_transcripts.fa.gz).
-- ***Mus musculus***: genome and transcriptome FASTA files based on the GRCm38 build and the [March 2013 SNP and indel calls](ftp://ftp-mouse.sanger.ac.uk/REL-1303-SNPs_Indels-GRCm38/) from the [Wellcome Trust Mouse Genomes Project](http://www.sanger.ac.uk/resources/mouse/genomes/) are [available here](http://haemgen.haem.cam.ac.uk/eturro/REL-1303-SNPs_Indels-GRCm38/) for the following strains: C57BL6, 129P2, 129S1, 129S5, AJ, AKRJ, BALBcJ, C3HHeJ, C57BL6NJ, CASTEiJ, CBAJ, DBA2J, FVBNJ, LPJ, NODShiLtJ, NZOHlLtJ, PWKPhJ, SPRETEiJ and WSBEiJ. For F1 data, you should append "\_STRAIN" to each transcript and each gene ID in the transcriptome FASTA headers (where "STRAIN" is the name of the strain) and concatenate the two relevant files into one hybrid FASTA. Then align your F1 reads to the hybrid reference as per the documentation above. For analysis with `mmdiff`, the `*.mmseq` files should be split into two, one file for each strain (use `head` to extract the headers and `grep STRAIN` to extract the rows for a particular strain).
+- ***Mus musculus***: genome and transcriptome FASTA files based on the GRCm38 build and the [March 2013 SNP and indel calls](ftp://ftp-mouse.sanger.ac.uk/REL-1303-SNPs_Indels-GRCm38/) from the [Wellcome Trust Mouse Genomes Project](http://www.sanger.ac.uk/resources/mouse/genomes/) are [available here](http://haemgen.haem.cam.ac.uk/eturro/REL-1303-SNPs_Indels-GRCm38/) for the following strains: C57BL6, 129P2, 129S1, 129S5, AJ, AKRJ, BALBcJ, C3HHeJ, C57BL6NJ, CASTEiJ, CBAJ, DBA2J, FVBNJ, LPJ, NODShiLtJ, NZOHlLtJ, PWKPhJ, SPRETEiJ and WSBEiJ. For F1 data, append "\_STRAIN" to each transcript and gene ID in the transcriptome FASTA headers (where "STRAIN" is the name of the strain) and concatenate the two relevant files into one hybrid FASTA. Then align the F1 reads to the hybrid reference as per the documentation above. For analysis with `mmdiff`, the `*.mmseq` files should be split into two, one file for each strain (use `head` to extract the headers and `grep STRAIN` to extract the rows for a particular strain).
 
-## Installation and dependencies
+## Building from source 
 
 ## Software usage
 
