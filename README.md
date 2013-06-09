@@ -5,10 +5,10 @@
 ## What is MMSEQ?
 The MMSEQ package contains a collection of statistical tools for analysing RNA-seq expression data. Expression levels are inferred for each transcript using the `mmseq` program by modelling mappings of reads or read pairs (fragments) to sets of transcripts. These transcripts can be based on reference, custom or haplotype-specific sequences. The latter allows haplotype-specific analysis, which is useful in studies of allelic imbalance. The posterior distributions of the expression parameters for groups of transcripts belonging to the same gene are aggregated to provide gene-level expression estimates. Other aggregations (e.g. of transcripts sharing the same UTRs) are also possible. Isoform usage (i.e., the proportion of a gene's expression due to each isoform) is also estimated. Uncertainty in expression levels is summarised as the standard deviation of the posterior mean of each expression parameter. When the uncertainty is large in all samples, a collapsing algorithm can be used for grouping transcripts into inferential units with reduced levels of uncertainty.
 
-The package also includes a model-selection algorithm for differential analysis (implemented in `mmdiff`) that takes into account the posterior uncertainty in the expression parameters and can be used to select amongst an arbitrary number of models. The algorithm is regression based and thus it can accomodate complex experimental designs. The model selection algorithm can be applied at the level of transcripts or transcript aggregates such as genes and it can also be applied to detect differential isoform usage by modelling summaries of the posterior distributions of isoform usage proportions as the outcomes of the linear regression models.
+The package also includes a model-selection algorithm for differential analysis (implemented in `mmdiff`) that takes into account the posterior uncertainty in the expression parameters and can be used to select amongst an arbitrary number of models. The algorithm is regression-based and thus it can accomodate complex experimental designs. The model selection algorithm can be applied at the level of transcripts or transcript aggregates such as genes and it can also be applied to detect differential isoform usage by modelling summaries of the posterior distributions of isoform usage proportions as the outcomes of the linear regression models.
 
 ## Citing MMSEQ
-If you use the MMSEQ package please cite:
+If you use the MMSEQ package, please cite:
 
 - Haplotype and isoform specific expression estimation using multi-mapping RNA-seq reads. Turro E, Su S-Y, Goncalves A, Coin L, Richardson S and Lewin A. Genome Biology, 2011 Feb; 12:R13. doi: [10.1186/gb-2011-12-2-r13](http://dx.doi.org/10.1186/gb-2011-12-2-r13).
 
@@ -18,13 +18,13 @@ If you use the `mmdiff` or `mmcollapse` programs, please also cite:
 
 ## Key features
 - Isoform-level expression analysis (works out-of-the-box with Ensembl cDNA and ncRNA files)
-- Gene-level expression analysis, which is robust to changes in isoform usage
-- Haplotype-specific analysis
+- Gene-level expression analysis that is robust to changes in isoform usage, unlike count-based methods
+- Haplotype-specific analysis, useful for eQTL analysis and studies of F1 crosses
 - Multi-mapping of reads, including mapping to transcripts from different genes, is properly taken into account
 - The insert size distribution is taken into account
 - Sequence-specific biases can be taken into account
 - Flexible differential analysis based on linear mixed models
-- Polytomous model selection (i.e. selecting amongst numerous competing models) is straightforward
+- Polytomous model selection (i.e. selecting amongst numerous competing models) 
 - Uncertainty in expression parameters is taken into account
 - Collapsing of transcripts with high levels of uncertainty into inferential units which can be estimated with reduced uncertainty
 - Multi-threaded C++ implementations
@@ -43,6 +43,8 @@ You might want to strip the suffix from the binaries. E.g., under Linux:
     for f in `ls *-linux`; do
       mv $f `basename $f -linux`
     done
+
+The current release is 1.0.3 ([changelog](https://github.com/eturro/mmseq/tree/master/src#changelog)). Click on "branch: master", then select "Tags", above, to download older releases.
 
 ## Estimating expression levels
 
@@ -119,23 +121,24 @@ These steps operate on a sample-by-sample basis and the expression estimates are
 
 #### Flexible model comparison using MMDIFF
 
-The `mmdiff` binary performs model comparison using the posterior summaries (`log_mu` and `sd` or `mean_probit_proportion` and `sd_probit_proportion`) saved in the MMSEQ tables. For each feature, two models must be specified in a matrices file. Alternatively, for simple differential expression (a model specifying two or more conditions vs. a model specifying a single condition), the `-de` convenience option may be used. E.g. for a 2 vs. 2 gene-level comparison, one could run:
+The `mmdiff` binary performs model comparison using the posterior summaries (`log_mu` and `sd` or `mean_probit_proportion` and `sd_probit_proportion`) saved in the MMSEQ tables. The two models can be specified in a matrices file using the `-m` option. Alternatively, for simple differential expression (a model specifying two or more conditions vs. a model specifying a single condition), the `-de` convenience option may be used instead of `-m`. E.g. for a simple 2 vs. 2 gene-level comparison, run:
 
     mmdiff -de 2 2 cond1rep1.gene.mmseq cond1rep2.gene.mmseq cond2rep1.gene.mmseq cond2rep2.gene.mmseq > out.mmdiff
 
-The prior probability that the second model is true may be specified with `-p FLOAT` (default: 0.1). In order to use the probit-transformed isoform usage proportions for inference (in order to check for differential isoform usage), set the option `-useprops`.
+The prior probability that the second model is true may be specified with `-p FLOAT` (default: 0.1).
 
-The models are regression based and can be specified in a file containing four matrices:
+In order to use the probit-transformed isoform usage proportions for inference (in order to check for differential isoform usage), set the option `-useprops`.
+
+The models are regression-based and more complex experimental designs can be specified in a file containing four matrices:
 
 - M is a model-independent covariate matrix
 - C maps observations to classes for each model
 - P0(collapsed) is a collapsed matrix (i.e. distinct rows) defining statistical model 0
 - P1(collapsed) is a collapsed matrix defining statistical model 1
 
-If a model has no classes (i.e. just an intercept term), define the P matrix to be simply `1`. E.g. for transcript-level differential expression between two groups of four samples without extraneous variables, the following command and matrices file would be appropriate (note, this is equivalent to specifying `-de 4 4`):
+If a model has no classes (i.e. just an intercept term), define the P matrix to be simply `1`. E.g. for transcript-level differential expression between two groups of two samples without extraneous variables, the following command and matrices file would be appropriate (note, this is equivalent to specifying `-de 2 2`):
 
-    mmdiff -m matrices_file cond1rep1.mmseq cond1rep2.mmseq cond1rep3.mmseq cond1rep4.mmseq \
-                            cond2rep1.mmseq cond2rep2.mmseq cond2rep3.mmseq cond2rep4.mmseq > out.mmdiff
+    mmdiff -m matrices_file cond1rep1.mmseq cond1rep2.mmseq cond2rep1.mmseq cond2rep1.mmseq > out.mmdiff
 
 where the matrices file contains:
 
@@ -144,17 +147,9 @@ where the matrices file contains:
     0
     0
     0
-    0
-    0
-    0
-    0
     # C; no. of rows = no. of observations and no. of columns = 2 (one for each model)
     0 0
     0 0
-    0 0
-    0 0
-    0 1
-    0 1
     0 1
     0 1
     # P0(collapsed); no. of rows = no. of classes for model 0
@@ -163,7 +158,7 @@ where the matrices file contains:
     .5
     -.5
 
-For a three-way differential expression analysis with three, three and two observations per group respectively, [this matrices file](https://raw.github.com/eturro/mmseq/master/doc/332.mat) would be appropriate.
+For a three-way differential expression analysis with three, three and two observations per group respectively, [this matrices file](https://raw.github.com/eturro/mmseq/master/doc/332.mat) would be appropriate (equivalent to using `-de 3 3 2`).
 
 In order to assess whether the log fold change between group A and group B is different to the log fold change between group C and group D, assuming there are two observations per group, [this matrices file](https://raw.github.com/eturro/mmseq/master/doc/dod2.mat) would be appropriate.
 
@@ -218,18 +213,30 @@ It is possible to collapse sets of transcripts based on posterior correlation es
 Here, `basename` is the name of the `mmseq` output files without the suffixes (such as `.mmseq` and `.gene.mmseq`). The command creates a set of new transcript-level MMSEQ files with the suffix `.collapsed.mmseq`, which can be used to perform more powerful transcript-level [differential analysis](#differential-expression-analysis).
 
 ## Reference files
+#### Ready to download:
+
 - ***Homo sapiens:*** download transcriptome FASTA files containing cDNA and ncRNA transcript sequences (but excluding alternative haplotype/supercontig entries) for the following versions of Ensembl: [64](http://haemgen.haem.cam.ac.uk/eturro/hs_transcripts/Homo_sapiens.GRCh37.64.ref_transcripts.fa.gz), [68](http://haemgen.haem.cam.ac.uk/eturro/hs_transcripts/Homo_sapiens.GRCh37.68.ref_transcripts.fa.gz), [70](http://haemgen.haem.cam.ac.uk/eturro/hs_transcripts/Homo_sapiens.GRCh37.70.ref_transcripts.fa.gz).
 - ***Mus musculus:*** genome and transcriptome FASTA files based on the GRCm38 build and the [March 2013 SNP and indel calls](ftp://ftp-mouse.sanger.ac.uk/REL-1303-SNPs_Indels-GRCm38/) from the [Wellcome Trust Mouse Genomes Project](http://www.sanger.ac.uk/resources/mouse/genomes/) are [available here](http://haemgen.haem.cam.ac.uk/eturro/REL-1303-SNPs_Indels-GRCm38/) for the following strains: C57BL6, 129P2, 129S1, 129S5, AJ, AKRJ, BALBcJ, C3HHeJ, C57BL6NJ, CASTEiJ, CBAJ, DBA2J, FVBNJ, LPJ, NODShiLtJ, NZOHlLtJ, PWKPhJ, SPRETEiJ and WSBEiJ. For F1 data, append "\_STRAIN" to each transcript and gene ID in the transcriptome FASTA headers (where "STRAIN" is the name of the strain) and concatenate the two relevant files into one hybrid FASTA. Then align the F1 reads to the hybrid reference as per the documentation above. For analysis with `mmdiff`, the `*.mmseq` files should be split into two, one file for each strain (use `head` to extract the headers and `grep STRAIN` to extract the rows for a particular strain).
 
+#### Making your own Ensembl vertebrate reference FASTAs:
+
+#### FASTAs with other header conventions:
+
+#### Making sample-specific transcript FASTAs through genotyping and phasing:
+
 ## Building from source 
 
-The package source can be obtained by cloning the GitHub repository and running `make` from the `src` directory:
+The package source can be obtained by cloning the GitHub repository, installing [dependencies](#dependencies-and-related-software) and running `make` from the `src` directory:
 
      git clone https://github.com/eturro/mmseq.git
      cd mmseq/src
      make
 
 The binaries are placed in the `bin` directory.
+
+## Dependencies and related software
+
+## Miscellany
 
 ## Software usage
 
