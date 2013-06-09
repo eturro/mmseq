@@ -111,6 +111,11 @@ class BMS {
 
   vector<Col<double> >Peta; // store P*eta, one for each thread
 
+  vector<Mat<double> >V; // store V, one for each thread
+  vector<Mat<double> >Vchol; // store cholesky V, one for each thread
+  vector<Mat<double> >invE; // store cholesky V, one for each thread
+  vector<Col<double> >cholSim; // store cholesky sim, one for each thread
+
   const Mat<double> *y;
   Mat<double> esq;
 

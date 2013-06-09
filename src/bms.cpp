@@ -628,20 +628,21 @@ void BMS::update_alpha(int feature, int model, bool fit) {
 void BMS::update_beta(int feature, int model, bool fit) {
   if(Mnil) return;
   if(fit || gamma(feature)==model) {
-    Mat<double> V(M.n_cols, M.n_cols);
-    Mat<double> Vchol(M.n_cols, M.n_cols);
-    Mat<double> invE = inv(diagmat(esq.row(feature) + (P[model] * sigmasq[model].col(feature)).t()));
-    V = inv(M.t()*invE*M + eye(M.n_cols, M.n_cols)/v_beta);
-    Vchol = trans(chol(V));
-
-    Col<double> sim(M.n_cols);
-    for(int i=0; i < M.n_cols; i++) {
-      sim(i) = gsl_ran_gaussian(rg[OMP_GET_THREAD_NUM], 1);
+    Peta[OMP_GET_THREAD_NUM]=P[model]*eta[model].col(feature);
+    for(int j=0; j < y->n_cols; j++) {
+      invE[OMP_GET_THREAD_NUM](j,j)=1.0/esq(feature, j) + 1.0/sigmasq[model](C(j,model), feature);
     }
-    beta[model].col(feature) = (Vchol*sim +
-                       (V*M.t()*invE)*
+
+    V[OMP_GET_THREAD_NUM] = inv(M.t()*invE[OMP_GET_THREAD_NUM]*M + eye(M.n_cols, M.n_cols)/v_beta);
+    Vchol[OMP_GET_THREAD_NUM] = trans(chol(V[OMP_GET_THREAD_NUM]));
+
+    for(int i=0; i < M.n_cols; i++) {
+      cholSim[OMP_GET_THREAD_NUM](i) = gsl_ran_gaussian(rg[OMP_GET_THREAD_NUM], 1);
+    }
+    beta[model].col(feature) = (Vchol[OMP_GET_THREAD_NUM]*cholSim[OMP_GET_THREAD_NUM] +
+                       (V[OMP_GET_THREAD_NUM]*M.t()*invE[OMP_GET_THREAD_NUM])*
                        (y->row(feature).t() - alpha[model](feature)*ones(y->n_cols)
-                         - P[model]*eta[model].col(feature))).t();
+                         - Peta[OMP_GET_THREAD_NUM])).t();
   } else {
     for(int i=0; i < M.n_cols; i++) {
       beta[model](i, feature) =  gsl_ran_gaussian(rg[OMP_GET_THREAD_NUM], sqrt(Vbeta[model](feature,i))) + B[model](feature,i);
@@ -1163,9 +1164,19 @@ BMS::BMS(const Mat<double> * _y, const Mat<double> & _e, Mat<double> _M, Mat<dou
     Mb.push_back(c);
     Mb1.push_back(c);
     Peta.push_back(c);
+    cholSim.push_back(c);
     Mb[i].set_size(y->n_rows);
     Mb1[i].set_size(y->n_rows);
     Peta[i].set_size(y->n_rows);
+    cholSim[i].set_size(M.n_cols);
+
+    Mat<double> m;
+    V.push_back(m);
+    Vchol.push_back(m);
+    invE.push_back(m);
+    V[i].set_size(M.n_cols, M.n_cols);
+    Vchol[i].set_size(M.n_cols, M.n_cols);
+    invE[i].set_size(y->n_cols, y->n_cols);
   }
 
   // nclasses
@@ -1250,7 +1261,7 @@ BMS::BMS(const Mat<double> * _y, const Mat<double> & _e, Mat<double> _M, Mat<dou
     Veta[model].fill(1.0);
     B.push_back(Mat<double>(y->n_rows, M.n_cols));
     B[model].fill(0.0);
-    Vbeta.push_back(Mat<double>(y->n_rows, nclasses[model]));
+    Vbeta.push_back(Mat<double>(y->n_rows, M.n_cols));
     Vbeta[model].fill(1.0);
     D.push_back(Mat<double>(y->n_rows, P[model].n_cols));
     D[model].fill(0.0);
