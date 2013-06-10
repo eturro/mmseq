@@ -343,20 +343,17 @@ void parse_matrices(string file, Mat<double> & M, Mat<double> & P0, Mat<double> 
     exit(1);
   }
 
-  cerr << "M:\n";
-  cerr << M;
-  cerr << "C:\n";
-  cerr << C ;
-  cerr << "P0:\n";
-  cerr << P0;
-  cerr << "P1:\n";
-  cerr << P1;
 }
 
 void printUsage(char *bin, ostream& out) {
-  out << "Usage: mmdiff [OPTIONS...] matrices_file mmseq_file1 mmseq_file2... > out.mmdiff" << endl
+  out << "Usage: mmdiff [OPTIONS...] [-de n1 n2 ... nC | -m matrices_file] mmseq_file1 mmseq_file2... > out.mmdiff" << endl
       << "       matrices_file contains M P0 P1 each separated by an empty line" << endl
       << endl;
+  out << "Mandatory arguments:" << endl
+      << "  ONE OF:" << endl
+      << "  -de INT INT...    simple differential expression between several groups of samples, where" << endl
+      << "                    each INT corresponds to a grouping of MMSEQ files into one condition" << endl
+      << "  -m STRING         path to matrices file specifying the two models to compare" << endl;
   out << "Optional arguments:" << endl
       << "  -tracedir STRING  directory in which to save MCMC traces (default: "" (do not write traces))" << endl
       << "  -useprops         run on isoform/gene proportions instead of expression" << endl
@@ -378,6 +375,7 @@ void printUsage(char *bin, ostream& out) {
 }
 
 int main(int argc, char** argv) {
+  string matrices_file="";
   string tracedir="";
   double p=0.1;
   double d=1.4;
@@ -398,6 +396,8 @@ int main(int argc, char** argv) {
   int batchlen=128;
   int tuneiters=batchlen;
   int numbatches=1;
+  vector <int> simple_de;
+  int ss=0;
 
   vector <string> arguments;
 
@@ -408,6 +408,29 @@ int main(int argc, char** argv) {
       arguments.erase(arguments.begin());
       tracedir=arguments[0];
       arguments.erase(arguments.begin());
+    } else if(arguments.size() >0 && arguments[0]=="-m") {
+      arguments.erase(arguments.begin());
+      matrices_file=arguments[0];
+      arguments.erase(arguments.begin());
+    } else if(arguments.size() >0 && arguments[0]=="-de") {
+      arguments.erase(arguments.begin());
+      cerr << "Number of samples in each group:";
+      while(ss < arguments.size()) {
+        simple_de.push_back(atoi(arguments[0].c_str()));
+        cerr << " " << simple_de.back();
+        arguments.erase(arguments.begin());
+        if(simple_de.back() < 1) {
+          cerr << endl << "Error: each grouping must contain at least one sample" << endl;
+          exit(1);
+        }
+
+        ss+=simple_de.back();
+      }
+      cerr << endl;
+      if(ss != arguments.size()) {
+        cerr << "Error: total number of samples specified with -de must equal number of MMSEQ files" << endl;
+        exit(1);
+      }
     } else if(arguments.size() >0 && arguments[0]=="-useprops") {
       arguments.erase(arguments.begin());
       useprops=true;
@@ -520,8 +543,15 @@ int main(int argc, char** argv) {
     normalise=false;
   }
 
-  string matrices_file=arguments[0];
-  arguments.erase(arguments.begin());
+  if(matrices_file=="" && simple_de.size()==0) {
+    cerr << "Error: either -de or -m must be specified" << endl;
+    exit(1);
+  }
+
+  if(matrices_file=="" && simple_de.size()==1) {
+    cerr << "Error: -de requires at least two groupings" << endl;
+    exit(1);
+  }
 
   vector <string> filenames;
   for(int i=0; i < arguments.size(); i++) {
@@ -575,12 +605,55 @@ int main(int argc, char** argv) {
   parse_mmseq(filenames, features, y, e, uh, range_start, range_end, l, useprops);
   if(normalise) apply_normalisation(filenames, y, uh, uhfrac);
   if(permute) apply_permutation(y, e);
-  parse_matrices(matrices_file, M, P0, P1, C, y.n_cols);
+  if(matrices_file=="") {
+    M.set_size(ss, 1);
+    M.fill(0.0);
+    C.set_size(ss, 2);
+    C.col(0).fill(0);
+    P0.set_size(ss,1);
+    if(simple_de.size()>2) {
+      P1.set_size(ss,simple_de.size());
+    } else {
+      P1.set_size(ss,1);
+    }
+    P0.fill(0.0);
+    P1.fill(0.0);
+    int k=0;
+    int l=0;
+    for(int i=0; i < simple_de.size(); i++) {
+      for(int j=0; j < simple_de[i]; j++) {
+        C(k,1)=l;
+        P0(k,0)=1.0;
+        if(simple_de.size()>2) {
+          P1(k,i)=1.0;
+        } else {
+          if(i==0) {
+            P1(k,0)=.5;
+          } else {
+            P1(k,0)=-.5;
+          }
+        }
+        k++;
+      }
+      l++;
+    }
+  } else {
+    parse_matrices(matrices_file, M, P0, P1, C, y.n_cols);
+  }
 
   if(!(filenames.size() == M.n_rows && M.n_rows == P0.n_rows && P0.n_rows == P1.n_rows)) {
     cerr << "Error: Rows in M, P0, P1 and number of mmseq files must match." << endl;
     exit(1);
   }
+
+  cerr << "M:\n";
+  cerr << M;
+  cerr << "C:\n";
+  cerr << C ;
+  cerr << "P0:\n";
+  cerr << P0;
+  cerr << "P1:\n";
+  cerr << P1;
 
   BMS mcmc = BMS(&y, e, M, P0, P1, C, pdash, d, s, tracedir, rg, max_threads, fixalpha);
 
