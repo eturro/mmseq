@@ -642,7 +642,7 @@ void BMS::update_beta(int feature, int model, bool fit) {
     beta[model].col(feature) = (Vchol[OMP_GET_THREAD_NUM]*cholSim[OMP_GET_THREAD_NUM] +
                        (V[OMP_GET_THREAD_NUM]*M.t()*invE[OMP_GET_THREAD_NUM])*
                        (y->row(feature).t() - alpha[model](feature)*ones(y->n_cols)
-                         - Peta[OMP_GET_THREAD_NUM])).t();
+                         - Peta[OMP_GET_THREAD_NUM]));
   } else {
     for(int i=0; i < M.n_cols; i++) {
       beta[model](i, feature) =  gsl_ran_gaussian(rg[OMP_GET_THREAD_NUM], sqrt(Vbeta[model](feature,i))) + B[model](feature,i);

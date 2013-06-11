@@ -24,8 +24,9 @@ If you use the `mmdiff` or `mmcollapse` programs, please also cite:
 - The insert size distribution is taken into account
 - Sequence-specific biases can be taken into account
 - Flexible differential analysis based on linear mixed models
-- Polytomous model selection (i.e. selecting amongst numerous competing models) 
 - Uncertainty in expression parameters is taken into account
+- Polytomous model selection (i.e. selecting amongst numerous competing models) 
+- Modelling of isoform usage proportions
 - Collapsing of transcripts with high levels of uncertainty into inferential units which can be estimated with reduced uncertainty
 - Multi-threaded C++ implementations
 
@@ -44,7 +45,7 @@ You might want to strip the suffix from the binaries. E.g., under Linux:
       mv $f `basename $f -linux`
     done
 
-The current release is 1.0.3 ([changelog](https://github.com/eturro/mmseq/tree/master/src#changelog)). Click on "branch: master", then select "Tags", above, to download older releases.
+The current release is 1.0.4 ([changelog](https://github.com/eturro/mmseq/tree/master/src#changelog)). Click on "branch: master", then select "Tags", above, to download older releases.
 
 ## Estimating expression levels
 
