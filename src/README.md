@@ -8,6 +8,7 @@ Ernest Turro wrote all the code in this package except
   - `fasta.c`/`h`: Bio5495/BME537 Computational Molecular Biology, Michigan State University
 
 ## Changelog
+  - 2013-06-11: MMSEQ 1.0.4 released, fixed bugs in mmdiff apparent when M.n\_cols > 1
   - 2013-06-09: MMSEQ 1.0.3 released, fixed beta update (covariates common to all models can now be taken into account); added -de convenience option for mmdiff; also fixed harmless bug that could strip first character of sample names in mmdiff output header
   - 2013-04-26: MMSEQ 1.0.2 released, better prior for eta in `mmdiff` (Inverse-Gamma)
   - 2013-04-08: MMSEQ 1.0.1 released, including new binaries `mmcollapse` and `mmdiff` (publication forthcoming)
