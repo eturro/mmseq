@@ -1115,8 +1115,7 @@ BMS::BMS(const Mat<double> * _y, const Mat<double> & _e, Mat<double> _M, Mat<dou
   rg=_rg;
   max_threads=_max_threads;
   esq=pow(_e,2);
-  gamma.set_size(y->n_rows);
-  gamma.fill(0);
+  gamma.zeros(y->n_rows);
   v_alpha=25;
   v_alpharoot=sqrt(v_alpha);
   d=_d;
@@ -1154,8 +1153,7 @@ BMS::BMS(const Mat<double> * _y, const Mat<double> & _e, Mat<double> _M, Mat<dou
     exit(1);
   }
 
-  gammasum.set_size(y->n_rows);
-  gammasum.fill(0.0);
+  gammasum.zeros(y->n_rows);
   runlen=0;
   recording=false;
 
@@ -1165,18 +1163,18 @@ BMS::BMS(const Mat<double> * _y, const Mat<double> & _e, Mat<double> _M, Mat<dou
     Mb1.push_back(c);
     Peta.push_back(c);
     cholSim.push_back(c);
-    Mb[i].set_size(y->n_rows);
-    Mb1[i].set_size(y->n_rows);
-    Peta[i].set_size(y->n_rows);
-    cholSim[i].set_size(M.n_cols);
+    Mb[i].zeros(y->n_rows);
+    Mb1[i].zeros(y->n_rows);
+    Peta[i].zeros(y->n_rows);
+    cholSim[i].zeros(M.n_cols);
 
     Mat<double> m;
     V.push_back(m);
     Vchol.push_back(m);
     invE.push_back(m);
-    V[i].set_size(M.n_cols, M.n_cols);
-    Vchol[i].set_size(M.n_cols, M.n_cols);
-    invE[i].set_size(y->n_cols, y->n_cols);
+    V[i].zeros(M.n_cols, M.n_cols);
+    Vchol[i].zeros(M.n_cols, M.n_cols);
+    invE[i].zeros(y->n_cols, y->n_cols);
   }
 
   // nclasses

@@ -610,18 +610,14 @@ int main(int argc, char** argv) {
   if(normalise) apply_normalisation(filenames, y, uh, uhfrac);
   if(permute) apply_permutation(y, e);
   if(matrices_file=="") {
-    M.set_size(ss, 1);
-    M.fill(0.0);
-    C.set_size(ss, 2);
-    C.col(0).fill(0);
-    P0.set_size(ss,1);
+    M.zeros(ss, 1);
+    C.zeros(ss, 2);
+    P0.zeros(ss,1);
     if(simple_de.size()>2) {
-      P1.set_size(ss,simple_de.size());
+      P1.zeros(ss,simple_de.size());
     } else {
-      P1.set_size(ss,1);
+      P1.zeros(ss,1);
     }
-    P0.fill(0.0);
-    P1.fill(0.0);
     int k=0;
     int l=0;
     for(int i=0; i < simple_de.size(); i++) {
