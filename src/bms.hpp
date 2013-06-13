@@ -174,6 +174,9 @@ class BMS {
   void print(bool also_gamma);
   void printtune(int batchlen);
 
+  bool Misnil();
+  bool Pisnil(int mod);
+
   void set_pseudoprior_alpha();
   void set_pseudoprior_beta();
   void set_pseudoprior_eta();

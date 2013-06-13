@@ -646,16 +646,26 @@ int main(int argc, char** argv) {
     exit(1);
   }
 
-  cerr << "M:\n";
-  cerr << M;
-  cerr << "C:\n";
-  cerr << C ;
-  cerr << "P0:\n";
-  cerr << P0;
-  cerr << "P1:\n";
-  cerr << P1;
-
   BMS mcmc = BMS(&y, e, M, P0, P1, C, pdash, d, s, tracedir, rg, max_threads, fixalpha);
+
+  cerr << "[1|M|P0]:\n";
+  Mat<double> T= ones(P0.n_rows, 1);
+  if(!mcmc.Misnil()) T.insert_cols(T.n_cols,M);
+  if(!mcmc.Pisnil(0)) T.insert_cols(T.n_cols,P0);
+  cerr << T;
+  
+  cerr << "[1|M|P1]:\n";
+  T= ones(P1.n_rows, 1);
+  if(!mcmc.Misnil()) T.insert_cols(T.n_cols,M);
+  if(!mcmc.Pisnil(1)) T.insert_cols(T.n_cols,P1);
+  cerr << T;
+
+  if(!mcmc.Misnil()) 
+    cerr << "Note: no betas\n";
+  if(!mcmc.Pisnil(0)) 
+    cerr << "Note: no etas in model 0\n";
+  if(!mcmc.Pisnil(1)) 
+    cerr << "Note: no etas in model 1\n";
 
   int subsample_burnin=burnin / OUTLEN;
   int subsample_iter=mcmciters / OUTLEN;

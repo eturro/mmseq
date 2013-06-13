@@ -1141,10 +1141,6 @@ BMS::BMS(const Mat<double> * _y, const Mat<double> & _e, Mat<double> _M, Mat<dou
   Pnil[0]=P[0].n_cols==1 && P[0].max() - P[0].min() < 0.00001 ? true : false;
   Pnil[1]=P[1].n_cols==1 && P[1].max() - P[1].min() < 0.00001 ? true : false;
   if(M.n_cols==1 && M.max() - M.min() < 0.00001) Mnil=true;
-  if(Mnil) cerr << "Skipping betas." << endl;
-  if(Pnil[0]) cerr << "Skipping etas for model 0." << endl;
-  if(Pnil[1]) cerr << "Skipping etas for model 1." << endl;
-
 
   Mat<double> Z = ones(y->n_cols);
   if(!Mnil) Z.insert_cols(1, M);
@@ -1282,6 +1278,14 @@ BMS::BMS(const Mat<double> * _y, const Mat<double> & _e, Mat<double> _M, Mat<dou
   }
 
   this->initialise_streams(string("-burnin"));
+}
+
+bool BMS::Misnil() {
+  return(this->Mnil);
+}
+
+bool BMS::Pisnil(int mod) {
+  return(this->Pnil[mod]);
 }
 
 double BMS::getp(int feature) {
