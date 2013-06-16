@@ -122,41 +122,20 @@ readmmseq <- function( mmseq_files = grep("gene|identical", dir( pattern="\\.mms
   return(list(log_mu=mu, sd=sd, mcse=mcse, iact=iact, effective_length=effective_lengths, true_length=true_lengths, unique_hits=unique_hits, ntranscripts=ntranscripts[,1], observed=observed, counts=counts))
 }
 
-
-ll.func <- function(pars, x=x,e=e, M=M, P=P) {
-  N=length(x)
-  C=ncol(P)
-  V=ncol(M)
-  par.alpha=pars[1]
-  par.beta=pars[2:(V+1)]
-  if(C==1) {
-    par.gamma <- matrix(0,nrow=1,ncol=1)
-    par.sigma2 <- matrix(pars[length(pars)],ncol=1)
-  } else {
-    par.gamma <- matrix(c(0,pars[(V+2):(V+C)]), ncol=1)
-    par.sigma2 <- matrix(pars[(V+C+1):length(pars)],ncol=1)
-  }
-  Lambda = diag(1/as.vector(P %*% par.sigma2 + e))
-  y=(x - rep(par.alpha,N) - M %*% par.beta - P %*% par.gamma) 
-  return(-( rep(1,N) %*% diag(log(1/diag(Lambda))) %*% rep(1,N) + 
-    t(y) %*% Lambda %*% (y)
-  ))
-}
-
-
 polyclass <- function(files, prior=NULL) {
   if(length(files)<2) {
     stop("Specify at least two mmdiff files")
   }
   n=length(files)+1
-  if(length(prior) != n || sum(prior) != 1) {
-    stop("Specify a vector of ", n, " prior probabilities adding up to 1")
-  }
-  print("Note: make sure model 0 is the same in each comparison (only model 1 should differ)")
   if(is.null(prior)) {
     warning("Assuming flat prior across models")
     priorm <- rep(1/n,n)
   } 
+  if(length(prior) != n || sum(prior) != 1) {
+    stop("Specify a vector of ", n, " prior probabilities adding up to 1")
+  }
+  print("Note: make sure model 0 is the same in each comparison (only model 1 should differ)")
+
   res <- read.table(files[1],header=1)
   postm <- matrix(nrow=nrow(res), ncol=n)
   colnames(postm) <- paste("postprob_model",0:(n-1),sep="")
@@ -181,6 +160,27 @@ polyclass <- function(files, prior=NULL) {
   res <- res[,-w]
   res <- cbind(res,postm)
   return(res)
+}
+
+
+ll.func <- function(pars, x=x,e=e, M=M, P=P) {
+  N=length(x)
+  C=ncol(P)
+  V=ncol(M)
+  par.alpha=pars[1]
+  par.beta=pars[2:(V+1)]
+  if(C==1) {
+    par.gamma <- matrix(0,nrow=1,ncol=1)
+    par.sigma2 <- matrix(pars[length(pars)],ncol=1)
+  } else {
+    par.gamma <- matrix(c(0,pars[(V+2):(V+C)]), ncol=1)
+    par.sigma2 <- matrix(pars[(V+C+1):length(pars)],ncol=1)
+  }
+  Lambda = diag(1/as.vector(P %*% par.sigma2 + e))
+  y=(x - rep(par.alpha,N) - M %*% par.beta - P %*% par.gamma) 
+  return(-( rep(1,N) %*% diag(log(1/diag(Lambda))) %*% rep(1,N) + 
+    t(y) %*% Lambda %*% (y)
+  ))
 }
 
 
