@@ -86,6 +86,7 @@ class BMS {
   vector< Mat<double> > beta;
   vector< Mat<double> > betaS;
   vector< Mat<double> > betaSS;
+  vector<Mat<int> > betaN;
 //  Cube<double> Vbeta;
 //  Cube<double> VbetaCholeskyTrans;
   vector<Mat<double> > eta;
@@ -214,6 +215,7 @@ class BMS {
 
   double gammamean(int feature);
   double alphamean(int model, int feature);
+  double betamean(int model, int cov, int feature);
   double etamean(int model, int cov, int feature);
   int nc(int model);
   int pc(int model);

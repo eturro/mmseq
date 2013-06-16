@@ -648,23 +648,36 @@ int main(int argc, char** argv) {
 
   BMS mcmc = BMS(&y, e, M, P0, P1, C, pdash, d, s, tracedir, rg, max_threads, fixalpha);
 
-  cerr << "[1|M|P0]:\n";
-  Mat<double> T= ones(P0.n_rows, 1);
-  if(!mcmc.Misnil()) T.insert_cols(T.n_cols,M);
-  if(!mcmc.Pisnil(0)) T.insert_cols(T.n_cols,P0);
-  cerr << T;
+  cerr << "Design matrix for model 0 ([";
+  if(!fixalpha) cerr << "1";
+  if(!mcmc.Misnil()) cerr << "|M";
+  if(!mcmc.Pisnil(0)) cerr << "|P0";
+  cerr << "]):\n";
+  Mat<double> Z= ones(P0.n_rows, fixalpha ? 0 : 1);
+  if(!mcmc.Misnil()) Z.insert_cols(Z.n_cols,M);
+  if(!mcmc.Pisnil(0)) Z.insert_cols(Z.n_cols,P0);
+  cerr << Z;
   
-  cerr << "[1|M|P1]:\n";
-  T= ones(P1.n_rows, 1);
-  if(!mcmc.Misnil()) T.insert_cols(T.n_cols,M);
-  if(!mcmc.Pisnil(1)) T.insert_cols(T.n_cols,P1);
-  cerr << T;
+  cerr << "Design matrix for model 1 ([";
+  if(!fixalpha) cerr << "1";
+  if(!mcmc.Misnil()) cerr << "|M";
+  if(!mcmc.Pisnil(1)) cerr << "|P1";
+  cerr << "]):\n";
+  Z= ones(P1.n_rows, fixalpha ? 0 : 1);
+  if(!mcmc.Misnil()) Z.insert_cols(Z.n_cols,M);
+  if(!mcmc.Pisnil(1)) Z.insert_cols(Z.n_cols,P1);
+  cerr << Z;
 
-  if(!mcmc.Misnil()) 
+  if(det(trans(Z)*Z)==0) {
+    cerr << "Error: singular covariate matrix " << endl;
+    exit(1);
+  }
+
+  if(mcmc.Misnil()) 
     cerr << "Note: no betas\n";
-  if(!mcmc.Pisnil(0)) 
+  if(mcmc.Pisnil(0)) 
     cerr << "Note: no etas in model 0\n";
-  if(!mcmc.Pisnil(1)) 
+  if(mcmc.Pisnil(1)) 
     cerr << "Note: no etas in model 1\n";
 
   int subsample_burnin=burnin / OUTLEN;
@@ -819,8 +832,15 @@ int main(int argc, char** argv) {
     if(!fixalpha) {
       cout << "alpha" << model << "\t";
     }
-    for(int l=0; l < mcmc.pc(model); l++) {
-      cout << "eta" << model << "_" << l << "\t";
+    if(!mcmc.Misnil()) {
+      for(int l=0; l < M.n_cols; l++) {
+        cout << "beta" << model << "_" << l << "\t";
+      }
+    }
+    if(!mcmc.Pisnil(model)) {
+      for(int l=0; l < mcmc.pc(model); l++) {
+        cout << "eta" << model << "_" << l << "\t";
+      }
     }
   }
   vector<string> samplenames = filenames;
@@ -851,8 +871,15 @@ int main(int argc, char** argv) {
       if(!fixalpha) {
         cout << mcmc.alphamean(model, feature) << "\t";
       }
-      for(int l=0; l < mcmc.pc(model); l++) {
-        cout << mcmc.etamean(model, l, feature) << "\t";
+      if(!mcmc.Misnil()) {
+        for(int l=0; l < M.n_cols; l++) {
+          cout << mcmc.betamean(model, l, feature) << "\t";
+        }
+      }
+      if(!mcmc.Pisnil(model)) {
+        for(int l=0; l < mcmc.pc(model); l++) {
+          cout << mcmc.etamean(model, l, feature) << "\t";
+        }
       }
     }
     for(int f=0; f < samplenames.size(); f++) {

@@ -630,7 +630,7 @@ void BMS::update_beta(int feature, int model, bool fit) {
   if(fit || gamma(feature)==model) {
     Peta[OMP_GET_THREAD_NUM]=P[model]*eta[model].col(feature);
     for(int j=0; j < y->n_cols; j++) {
-      invE[OMP_GET_THREAD_NUM](j,j)=1.0/esq(feature, j) + 1.0/sigmasq[model](C(j,model), feature);
+      invE[OMP_GET_THREAD_NUM](j,j)=1.0/(esq(feature, j) + sigmasq[model](C(j,model), feature));
     }
 
     V[OMP_GET_THREAD_NUM] = inv(M.t()*invE[OMP_GET_THREAD_NUM]*M + eye(M.n_cols, M.n_cols)/v_beta);
@@ -652,6 +652,7 @@ void BMS::update_beta(int feature, int model, bool fit) {
     for(int i=0; i < M.n_cols; i++) {
       betaS[model](i, feature) += beta[model](i, feature);
       betaSS[model](i, feature) += beta[model](i, feature)*beta[model](i, feature);
+      betaN[model](i,feature) += 1;
     }
   }
 }
@@ -945,11 +946,13 @@ double BMS::log_target_posterior(int feature, int model) {
   }
   res += -.5 * sum -.5*sum2;
   res += -.5 * alpha[model](feature)*alpha[model](feature)/v_alpha;
-  sum=0;
-  for(int j=0; j < M.n_cols; j++) {
-    sum += beta[model](j, feature)*beta[model](j, feature);
+  if(!Mnil){
+    sum=0;
+    for(int j=0; j < M.n_cols; j++) {
+      sum += beta[model](j, feature)*beta[model](j, feature);
+    }
+    res += -.5/v_beta * sum; 
   }
-  res += -.5/v_beta * sum; 
   sum=0;
   if(!Pnil[model]) {
     for(int l=0; l < P[model].n_cols; l++) {  
@@ -971,6 +974,11 @@ double BMS::log_target_pseudo(int feature, int model) {
   double res=0.0, sum=0.0;
   if(!fixalpha) {
     res += -.5 * log(Valpha[model](feature)) - .5*pow(alpha[model](feature) - A[model](feature), 2)/Valpha[model](feature);
+  }
+  if(!Mnil) {
+    for(int l=0; l < M.n_cols; l++) {
+      res += -.5 * log(Vbeta[model](feature,l)) -.5*pow(beta[model](l,feature) - B[model](feature,l),2)/Vbeta[model](feature,l);
+    }
   }
   sum=0;
   if(!Pnil[model]) {
@@ -1029,6 +1037,11 @@ double BMS::alphamean(int model, int feature) {
   return(res);
 }
 
+double BMS::betamean(int model, int cov, int feature) {
+  double res=betaS[model](cov, feature)/(double)betaN[model](cov, feature);
+  return(res);
+}
+
 double BMS::etamean(int model, int cov, int feature) {
   double res=etaS[model](cov, feature)/(double)etaN[model](cov, feature);
   return(res);
@@ -1048,6 +1061,7 @@ void BMS::reset() {
     alphaN[model].fill(0.0);
     betaS[model].fill(0.0);
     betaSS[model].fill(0.0);
+    betaN[model].fill(0.0);
     etaS[model].fill(0.0);
     etaSS[model].fill(0.0);
     etaN[model].fill(0.0);
@@ -1077,6 +1091,9 @@ void BMS::print_pseudo() {
   ofstream ofp(file.c_str());
   for(int model=0; model < 2; model++) {
     ofp << "A" << model << "\tValpha" << model << "\t";
+    for(int l=0; l < M.n_cols; l++) {
+      ofp << "B" << model << "_" << l << "\tVbeta" << model << "_" << l << "\t";
+    }
     for(int l=0; l < P[model].n_cols; l++) {
       ofp << "F" << model << "_" << l << "\tVeta" << model << "_" << l << "\t";
       ofp << "S" << model << "_" << l << "\t";
@@ -1090,7 +1107,10 @@ void BMS::print_pseudo() {
 
   for(int i=0; i < y->n_rows; i++) {
     for(int model=0; model < 2; model++) {
-      ofp << A[0](i,0) << "\t" << Valpha[0](i,0) << "\t";
+      ofp << A[model](i,0) << "\t" << Valpha[model](i,0) << "\t";
+      for(int l=0; l < M.n_cols; l++) {
+        ofp << B[model](i,l) << "\t" << Vbeta[model](i,l) << "\t";
+      }
       for(int l=0; l < P[model].n_cols; l++) {
         ofp << F[model](i, l) << "\t" << Veta[model](i,l) << "\t"
             << 1.0/S_inv[model](i, l) << "\t";
@@ -1122,15 +1142,17 @@ BMS::BMS(const Mat<double> * _y, const Mat<double> & _e, Mat<double> _M, Mat<dou
   s=_s; // lower means more shrinkage of etas towards small values
   tracedir=_tracedir;
   fixalpha=_fixalpha;
-  if(fixalpha) {
-    cerr << "Fixing alpha=0.\n";
-  }
   logitp.resize(y->n_rows, log(pdash) - log(1.0-pdash));
   istuned.resize(y->n_rows, false);
   LOsum.resize(y->n_rows, 0.0);
   stilltotune_=y->n_rows;
   justtuned.resize(OMP_GET_MAX_THREADS,0);
-  v_beta=pow(10,3);
+  if(fixalpha) {
+    v_beta=25;
+    cerr << "Fixing alpha=0, so setting v_beta^2=25 instead of 4.\n";
+  } else {
+    v_beta=4;
+  }
   v_betaroot=sqrt(v_beta);
   k=4.0;
   q=1.2; // control shrinkage of sigma^2
@@ -1140,14 +1162,6 @@ BMS::BMS(const Mat<double> * _y, const Mat<double> & _e, Mat<double> _M, Mat<dou
   Mnil=M.n_cols==1 && M.max() - M.min() < 0.00001 ? true : false;
   Pnil[0]=P[0].n_cols==1 && P[0].max() - P[0].min() < 0.00001 ? true : false;
   Pnil[1]=P[1].n_cols==1 && P[1].max() - P[1].min() < 0.00001 ? true : false;
-  if(M.n_cols==1 && M.max() - M.min() < 0.00001) Mnil=true;
-
-  Mat<double> Z = ones(y->n_cols);
-  if(!Mnil) Z.insert_cols(1, M);
-  if(det(trans(Z)*Z)==0) {
-    cerr << "Error: singular covariate matrix " << endl << Z;
-    exit(1);
-  }
 
   gammasum.zeros(y->n_rows);
   runlen=0;
@@ -1216,6 +1230,12 @@ BMS::BMS(const Mat<double> * _y, const Mat<double> & _e, Mat<double> _M, Mat<dou
     betaS[model].fill(0.0);
     betaSS.push_back(Mat<double>(M.n_cols, y->n_rows));
     betaSS[model].fill(0.0);
+    betaN.push_back(Mat<int>(M.n_cols, y->n_rows));
+    betaN[model].fill(0.0);
+    Vbeta.push_back(Mat<double>(y->n_rows, M.n_cols));
+    Vbeta[model].fill(1.0);
+    B.push_back(Mat<double>(y->n_rows, M.n_cols));
+    B[model].fill(0.0);
   }
 
   // eta, lambda, sigmasq
@@ -1253,10 +1273,6 @@ BMS::BMS(const Mat<double> * _y, const Mat<double> & _e, Mat<double> _M, Mat<dou
     F[model].fill(0.0);
     Veta.push_back(Mat<double>(y->n_rows, P[model].n_cols));
     Veta[model].fill(1.0);
-    B.push_back(Mat<double>(y->n_rows, M.n_cols));
-    B[model].fill(0.0);
-    Vbeta.push_back(Mat<double>(y->n_rows, M.n_cols));
-    Vbeta[model].fill(1.0);
     D.push_back(Mat<double>(y->n_rows, P[model].n_cols));
     D[model].fill(0.0);
     S_inv.push_back(Mat<double>(y->n_rows, P[model].n_cols));
