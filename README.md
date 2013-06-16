@@ -45,7 +45,7 @@ You might want to strip the suffix from the binaries. E.g., under Linux:
       mv $f `basename $f -linux`
     done
 
-The current release is 1.0.4 ([changelog](https://github.com/eturro/mmseq/tree/master/src#changelog)). Click on "branch: master", then select "Tags", above, to download older releases.
+The current release is 1.0.5 ([changelog](https://github.com/eturro/mmseq/tree/master/src#changelog)). Click on "branch: master", then select "Tags", above, to download older releases.
 
 ## Estimating expression levels
 
