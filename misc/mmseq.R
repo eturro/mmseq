@@ -129,7 +129,7 @@ polyclass <- function(files, prior=NULL) {
   n=length(files)+1
   if(is.null(prior)) {
     warning("Assuming flat prior across models")
-    priorm <- rep(1/n,n)
+    prior <- rep(1/n,n)
   } 
   if(length(prior) != n || sum(prior) != 1) {
     stop("Specify a vector of ", n, " prior probabilities adding up to 1")
@@ -146,8 +146,8 @@ polyclass <- function(files, prior=NULL) {
   }
 
   for(i in 1:nrow(res)) {
-    summ <- sum(bf[i,]*priorm)
-    postm[i,] <- bf[i,]*priorm/summ
+    summ <- sum(bf[i,]*prior)
+    postm[i,] <- bf[i,]*prior/summ
     if(sum(is.infinite(bf[i,]))>1) {
       warning(paste("More than one BF inf", i))
     } else if(sum(bf[1,]==0)>1) {
