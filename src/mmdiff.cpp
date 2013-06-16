@@ -650,7 +650,7 @@ int main(int argc, char** argv) {
 
   cerr << "Design matrix for model 0 ([";
   if(!fixalpha) cerr << "1";
-  if(!mcmc.Misnil() || !mcmc.Pisnil(0)) cerr << "|";
+  if(!fixalpha && (!mcmc.Misnil() || !mcmc.Pisnil(0))) cerr << "|";
   if(!mcmc.Misnil()) cerr << "M";
   if(!mcmc.Pisnil(0) && (!fixalpha || !mcmc.Misnil())) cerr << "|";
   if(!mcmc.Pisnil(0)) cerr << "P0";
@@ -662,7 +662,7 @@ int main(int argc, char** argv) {
   
   cerr << "Design matrix for model 1 ([";
   if(!fixalpha) cerr << "1";
-  if(!mcmc.Misnil() || !mcmc.Pisnil(1)) cerr << "|";
+  if(!fixalpha && (!mcmc.Misnil() || !mcmc.Pisnil(1))) cerr << "|";
   if(!mcmc.Misnil()) cerr << "M";
   if(!mcmc.Pisnil(1) && (!fixalpha || !mcmc.Misnil())) cerr << "|";
   if(!mcmc.Pisnil(1)) cerr << "P0";
