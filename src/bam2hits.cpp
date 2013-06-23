@@ -306,7 +306,7 @@ vector<string> extractElements(const char *str, boost::regex re, vector<int> bac
     cerr << "Error: entry did not match regular expression:\n";
     cerr << "\tentry: " << str << endl;
     cerr << "\tregex: " << re << endl;
-    cerr << "\tHints: use bowtie's --fullref option on references other than vertebrate Ensembl" << endl;
+    cerr << "\tHints: use bowtie's --fullref option on FASTAs not following the Ensembl convention" << endl;
     cerr << "\t       use bam2hits's -m tg_regexp t_ind g_ind option to match transcript and gene IDs" << endl;
     exit(1);
   }
@@ -370,7 +370,7 @@ void printUsage(char *bin, ostream& out) {
       << "" << endl
       << "Arguments to option -m for use with non-Ensembl transcript FASTA files:" << endl
       << "  tg_regexp:           regular expression matching FASTA entry names, where pairs of brackets" << endl
-      << "                       are used to capture transcript and gene IDs. E.g.: \"(E\\S+).*gene:(E\\S+).*\"" << endl
+      << "                       are used to capture transcript and gene IDs. E.g.: \"(\\S+).*gene:(\\S+).*\"" << endl
       << "  t_ind:               index of bracket pair that captures the transcript ID. E.g.: 1." << endl
       << "  g_ind:               index of bracket pair that captures the gene ID. E.g.: 2." << endl
       << "" << endl
@@ -413,7 +413,7 @@ int main(int argc, char *argv[]) {
   const int MSEQ_AFTER=21;
 
   // set some defaults
-  boost::regex re("(E\\S+).*gene:(E\\S+).*");
+  boost::regex re("(\\S+).*gene:(\\S+).*");
   vector<int> tgBackrefs;
   tgBackrefs.push_back(1);
   tgBackrefs.push_back(2);
