@@ -230,3 +230,119 @@ Then clone the GitHub repository and run `make` from the `src` directory, which 
 
 ## Software usage
 
+`bam2hits`
+
+    Usage: bam2hits [-v] [-t] [-m tg_regexp t_ind g_ind] [-i expected_isize sd_of_isizes] [-k] [-b] [-c alt_lengths] [-u alt_lengths] transcript_fasta sorted_bam > hits_file
+    Generate hits file for use with `mmseq`.
+
+    Mandatory arguments:
+      transcript_fasta:    FASTA file used as reference to produce SAM file.
+      sorted_bam:          BAM file sorted by read name containing alignments to reference transcripts.
+
+    Option -v:             print version and quit.
+
+    Option -t:             output hits file in plain text instead of compressed binary format.
+
+    Arguments to option -m for use with non-Ensembl transcript FASTA files:
+      tg_regexp:           regular expression matching FASTA entry names, where pairs of brackets
+                           are used to capture transcript and gene IDs. E.g.: "(\S+).*gene:(\S+).*"
+      t_ind:               index of bracket pair that captures the transcript ID. E.g.: 1.
+      g_ind:               index of bracket pair that captures the gene ID. E.g.: 2.
+
+    Arguments to option -i for calculating effective transcript lengths and filtering very unlikely alignments:
+      expected_isize:      expected insert size (e.g. 180). Default: for paired-end reads, the mode obtained using the
+                           first 2M single-mapping proper pairs, smoothing the histogram in windows of 3;
+                           for single-end reads, 180.
+      sd_of_isizes:        standard deviation of insert sizes (e.g. 25). Default: for paired-end reads, 1/1.96 times
+                           the distance between the mode and the top 2.50% insert sizes in the first 2M single-mapping proper pairs;
+                           for single-end reads, 25.
+
+    Option -k:             for paired-end reads, disable insert size deviation filter, which removes alignments with
+                           insert sizes beyond 1.96 sd of the mean if alternative alignments exist
+                           with insert sizes within 1.96 sd of the mean.
+
+    Option -b:             merge hits to _A and _B arbitrary-phase haplo-isoforms. This is usually done if the only
+                           reason for creating haplo-isoform sequences is to reduce allelic mapping biases.
+
+    Argument to option -c for adjusting transcript lengths for non-uniformity with 'mseq' R package (required):
+      alt_lengths:         name of file in which to save the adjusted lengths (can be reused in future with -u)
+
+    Argument to option -u for correcting for non-uniformity:
+      alt_lengths:         name of file containing adjusted transcript lengths
+
+`hitstools`
+
+    Utilities for handling hitsfile (.hits) and bitsfile (.bits, `binary hitsfile`) formats.
+
+    View a summary of a hits file:
+      hitstools inspect in.hits
+    Output header:
+     hitstools header in.hits
+    Convert from text format to binary format:
+      hitstools b in_text.hits > out_binary.hits
+    Convert from binary format to text format:
+      hitstools t in_binary.hits > out_text.hits
+
+`mmseq`
+
+    Usage: mmseq [OPTIONS...] hits_file output_base
+
+    Mandatory arguments:
+      hits_file          hits file generated with `bam2hits`
+      output_base        base name for output files
+
+    Optional arguments:
+      -alpha FLOAT       value of alpha in Gamma prior for mu (default: 0.1)
+      -beta FLOAT        value of beta in Gamma prior for mu (default: 0.1)
+      -max_em_iter INT   maximum number of EM iterations (default: 1000)
+      -epsilon FLOAT     minimum loglik ratio between successive EM iterations (default: 0.1)
+      -gibbs_iter INT    number of Gibbs iterations (default: 16384)
+      -gibbs_ss INT      subsampling interval for Gibbs output (default: gibbs_iter/1024)
+      -seed INT          seed for the PRNG in thread 0 (default: 1234)
+      -debug             output additional diagnostic files
+      -help              print this help message
+      -version           print the version
+
+`mmdiff`
+
+    Usage: mmdiff [OPTIONS...] [-de n1 n2 ... nC | -m matrices_file] mmseq_file1 mmseq_file2... > out.mmdiff
+           matrices_file contains M P0 P1 each separated by an empty line
+
+    Mandatory arguments:
+      ONE OF:
+      -de INT INT...    simple differential expression between several groups of samples, where
+                        each INT corresponds to a grouping of MMSEQ files into one condition
+      -m STRING         path to matrices file specifying the two models to compare
+    Optional arguments:
+      -tracedir STRING  directory in which to save MCMC traces (default:  (do not write traces))
+      -useprops         run on isoform/gene proportions instead of expression
+      -permute          run on permuted dataset; combine with non-permuted results to obtain q-values
+      -p FLOAT          prior probability of the second model (default: 0.1)
+      -d FLOAT          d hyperparameter (default: 1.4)
+      -s FLOAT          s hyperparameter (default: 2.0)
+      -l INT            length of MCMC trace used to produce the input estimates (default: 1024)
+      -fixalpha         fix alpha=0 and do not update (default: estimate alpha)
+      -nonorm           do not normalise the input data
+      -pdash FLOAT      initial value of pdash for improved mixing of gamma (stays fixed if -notune is set) (default: 0.5)
+      -notune           do not tune pdash to improve mixing for gamma
+      -uhfrac FLOAT     if normalising, use features which have at least one unique hit
+                        in at least uhfrac of the samples (default: max(0.2, (N - floor(N^2/160))/N))
+      -burnin INT       burnin iterations (default: 8192)
+      -iter INT         MCMC iterations (default: 16384)
+      -seed INT         seed for PRNG (default: 1234)
+      -range INT INT    select features indexed within range (default: all)
+`mmcollapse`
+
+    Usage: mmcollapse basename1 basename2...
+
+`extract_transcripts`
+
+    Usage: extract_transcripts fasta_file ensembl_gtf_file
+
+`t2g_hits`
+
+    Usage: t2g_hits hits_file > gene_hits_file
+
+    Mandatory arguments:
+      hits_file          hits file generated with `bam2hits`
+
