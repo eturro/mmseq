@@ -191,6 +191,14 @@ Here, `basename` is the name of the `mmseq` output files without the suffixes (s
 
 #### Making your own Ensembl vertebrate reference FASTAs:
 
+Download the cDNA and ncRNA FASTA files for the Ensembl version and species of interest from the [Ensembl FTP server](http://www.ensembl.org/info/data/ftp/index.html) and combine them into a single file. For humans, you should remove alternative haplotype/supercontig entries using the `fastagrep.sh` script in the `bin` directory, which is an adapted version of unix `grep` that works on FASTA files. E.g.:
+
+    wget ftp://ftp.ensembl.org/pub/release-72/fasta/homo_sapiens/cdna/Homo_sapiens.GRCh37.72.cdna.all.fa.gz
+    wget ftp://ftp.ensembl.org/pub/release-72/fasta/homo_sapiens/ncrna/Homo_sapiens.GRCh37.72.ncrna.fa.gz
+    gunzip Homo_sapiens.GRCh37.72.*.fa.gz
+    cat Homo_sapiens.GRCh37.72.ncrna.fa >> Homo_sapiens.GRCh37.72.cdna.all.fa
+    fastagrep.sh -v 'supercontig|GRCh37:[^1-9XMY]' Homo_sapiens.GRCh37.72.cdna.all.fa > Homo_sapiens.GRCh37.72.ref_transcripts.fa # for humans only
+
 #### FASTAs with other header conventions:
 
 #### Making sample-specific transcript FASTAs through genotyping and phasing:
