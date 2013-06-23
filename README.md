@@ -112,8 +112,8 @@ Description of output:
     13.  **observed:** whether or not a feature has hits
     14.  **ntranscripts:** number of isoforms for the gene of that transcript
 
-- `asample.identical.mmseq`: as above but aggregated over transcripts sharing the same sequence (these estimates are usually far more precise than the corresponding individual estimates in the transcript-level table); note that `log\_mu\_em` and proportion summaries are not available for aggregates
-- `asample.gene.mmseq`: as above but aggregated over genes and the `effective\_length` is an average of isoform effective lengths weighted by their expression
+- `asample.identical.mmseq`: as above but aggregated over transcripts sharing the same sequence (these estimates are usually far more precise than the corresponding individual estimates in the transcript-level table); note that `log_mu_em` and proportion summaries are not available for aggregates
+- `asample.gene.mmseq`: as above but aggregated over genes and the `effective_length` is an average of isoform effective lengths weighted by their expression
 - Various other files (`asample.*.trace_gibbs.gz`, `asample.M` and `asample.k`) containing more detailed output
 
 These steps operate on a sample-by-sample basis and the expression estimates are roughly proportional to the RNA concentrations in each sample. Some scaling of the estimates may be required to make them comparable across biological replicates and conditions. The posterior standard deviations capture the uncertainty due to both Poisson counting noise and the additional ambiguity in the mappings between reads and transcripts. The biological variance across samples can only be discerned with the use of biological replicates (see section on [differential expression](#differential-expression-analysis) below).
