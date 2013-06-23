@@ -211,15 +211,18 @@ If you are unsure what regular expression to use, try out by trial and error usi
 
 ## Building from source 
 
-The package source can be obtained by cloning the GitHub repository, installing [dependencies](#dependencies-and-related-software) and running `make` from the `src` directory:
+The [MMSEQ package](#installation) comes with statically-linked binaries for 64-bit Mac OS X and GNU/Linux, which should work out of the box on most systems. In order to build from source, install the following dependencies:
+
+- [Boost C++ libraries](http://boost.org/)
+- [GNU Scientific Library](http://www.gnu.org/software/gsl)
+- [Armadillo C++ linear algebra library](http://arma.sf.net)
+- [SAMtools library](http://samtools.sourceforge.net/)
+
+Then clone the GitHub repository and run `make` from the `src` directory, which will place the binaries in the `bin` directory:
 
      git clone https://github.com/eturro/mmseq.git
      cd mmseq/src
      make
-
-The binaries are placed in the `bin` directory.
-
-## Dependencies and related software
 
 ## Miscellany
 
