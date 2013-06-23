@@ -17,7 +17,7 @@ If you use the `mmdiff` or `mmcollapse` programs, please also cite:
 - Flexible analysis of RNA-seq data using mixed effects models. Turro E, Astle WJ and Tavar&eacute; S. *Submitted*.
 
 ## Key features
-- Isoform-level expression analysis (works out-of-the-box with Ensembl cDNA and ncRNA files)
+- Isoform-level expression analysis (works out of the box with Ensembl cDNA and ncRNA files)
 - Gene-level expression analysis that is robust to changes in isoform usage, unlike count-based methods
 - Haplotype-specific analysis, useful for eQTL analysis and studies of F1 crosses
 - Multi-mapping of reads, including mapping to transcripts from different genes, is properly taken into account
@@ -62,25 +62,23 @@ The example commands below assume that the FASTQ files are `asample_1.fq` and `a
 (It is advisable to use a lower-than-default value for --offrate (such as 2 or 3) as long as the resulting index fits in memory.)
 
 #### Step 2a: Trim out adapter sequences if necessary
-If the insert size distribution overlaps the read length, trim back the reads to exclude adapter sequences. [Trim Galore!](http://www.bioinformatics.babraham.ac.uk/projects/trim_galore/) works well:
+If the insert size distribution overlaps the read length, trim back the reads to exclude adapter sequences. [Trim Galore!](http://www.bioinformatics.babraham.ac.uk/projects/trim_galore/) works well. E.g. for libraries prepared using standard Illumina adapters (`AGATCGGAAGAGC`), run:
 
-<pre><code>trim_galore --phred64 -q 15 -a AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC<span style="color:blue">TAACAAG</span>ATCTCGTATGCCGTCTTCTGCTTG \
-  -a2 AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT -s 3 -e 0.05 \
-  --length 36 --trim1 --gzip --paired asample_1.fq.gz asample_2.fq.gz</code></pre>
-
-(TruSeq index highlighted in blue.)
+    trim_galore -q 15 -s 3 -e 0.05 --length 36 --trim1 --paired asample_1.fq.gz asample_2.fq.gz
 
 #### Step 2b: Align reads with Bowtie 1 (not Bowtie 2)
 
     bowtie -a --best --strata -S -m 100 -X 500 --chunkmbs 256 -p 8 Homo_sapiens.GRCh37.70.ref_transcripts \
-      -1 asample_1.fq -2 asample_2.fq | samtools view -F 0xC -bS - | samtools sort -n - asample.namesorted
+      -1 <(gzip -dc asample_1.fq.gz) -2 <(gzip -dc asample_2.fq.gz) | samtools view -F 0xC -bS - | \
+      samtools sort -n - asample.namesorted
 
 - Always specify `-a` to ensure you get multi-mapping alignments
 - Suppress alignments for reads that map to a huge number of transcripts with the `-m` option (e.g. `-m 100`)
 - Adjust `-X` according to the maximum insert size
-- If the reference FASTA file doesn't use the vertebrate Ensembl naming convention, then also specify `--fullref`
+- If the reference FASTA file doesn't use the [Ensembl convention](#fastas-with-other-header-conventions), then also specify `--fullref`
 - The read names must end with /1 or /2, not /3 or /4 (this can be corrected with `awk 'FNR % 4==1 { sub(/\/[34]$/, "/2") } { print }' secondreads.fq > secondreads-new.fq`).
 - If there are multiple FASTQ files from the same library, feed them all together to Bowtie in one go (delimit the FASTQ file names with commas)
+- The command above assumes the FASTQ files are gzipped, hence the `gzip -dc`
 - If you are getting many "Exhausted best-first chunk memory" warnings, try increasing `--chunkmbs` to 128 or 256.
 - If the read names contain spaces, make sure the substring up to the first space in each read is unique, as Bowtie strips anything after a space in a read name
 - The output BAM file must be sorted by read name.
@@ -191,7 +189,7 @@ Here, `basename` is the name of the `mmseq` output files without the suffixes (s
 
 #### Making your own Ensembl vertebrate reference FASTAs:
 
-Download the cDNA and ncRNA FASTA files for the Ensembl version and species of interest from the [Ensembl FTP server](http://www.ensembl.org/info/data/ftp/index.html) and combine them into a single file. For humans, you should remove alternative haplotype/supercontig entries using the `fastagrep.sh` script in the `bin` directory, which is an adapted version of unix `grep` that works on FASTA files. E.g.:
+Download the cDNA and ncRNA FASTA files for the Ensembl version and species of interest from the [Ensembl FTP server](http://www.ensembl.org/info/data/ftp/index.html) and combine them into a single file. For humans, remove alternative haplotype/supercontig entries using the `fastagrep.sh` script in the `bin` directory, which is an adapted version of unix `grep` that greps multi-line FASTA entries. E.g.:
 
     wget ftp://ftp.ensembl.org/pub/release-72/fasta/homo_sapiens/cdna/Homo_sapiens.GRCh37.72.cdna.all.fa.gz
     wget ftp://ftp.ensembl.org/pub/release-72/fasta/homo_sapiens/ncrna/Homo_sapiens.GRCh37.72.ncrna.fa.gz
