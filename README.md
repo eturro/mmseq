@@ -161,6 +161,8 @@ For a three-way differential expression analysis with three, three and two obser
 
 In order to assess whether the log fold change between group A and group B is different to the log fold change between group C and group D, assuming there are two observations per group, [this matrices file](https://raw.github.com/eturro/mmseq/master/doc/dod2.mat) would be appropriate.
 
+By default, `mmdiff` includes a global intercept alpha. If you prefer to fix alpha=0 and instead use the M covariate matrix to define multiple independent intercepts (beta), then set the option `-fixalpha`.
+
 For further advice on setting up the matrices file for a particular study design, do not hesitate to contact the corresponding author.
 
 Description of the output:
@@ -168,9 +170,12 @@ Description of the output:
 1.  **feature\_id:** the name of the feature (e.g. Ensembl transcript ID)
 2.  **bayes\_factor:** the Bayes factor in favour of the second model
 3.  **posterior\_probability:** the posterior probability in favour of the second model (the prior probability is recorded in a # comment at the top of the file)
-4.  **alpha0 and alpha1:** posterior mean estimates of the intercepts for each model
-5.  **eta0\_0, eta0\_1..., eta1\_0, eta1\_1...:** posterior mean estimates of the regression coefficients under each of the models
-6.  **mu\_sample1, mu\_sample2,... sd\_sample1, sd\_sample2,...:** the data, i.e. the posterior means and standard deviations used as the outcomes
+4.  **alpha0 and alpha1:** estimated posterior mean of the global intercept for each model
+5.  **beta0\_0, beta0\_1..., beta1\_0, beta1\_0:** estimated posterior means of the regression coefficients of the model-independent covariate matrix M under each model
+6.  **eta0\_0, eta0\_1..., eta1\_0, eta1\_1...:** estimated posterior means of the regression coefficients of the model-dependent matrix P under each model
+7.  **mu\_sample1, mu\_sample2,... sd\_sample1, sd\_sample2,...:** the data, i.e. the posterior means and standard deviations used as the outcomes
+
+To perform polytomous model selection (i.e., compare multiple models), run `mmdiff` multiple times, comparing each alternative model to some baseline model. Then, in R, source the `mmseq.R` file in the `src/R` directory and feed the mmdiff output files to the `polyclass()` function. A vector of prior probabilities for each model can be specified in the `prior` argument (assumed flat by default). The function returns a data frame containing the posterior probability of each model for each feature (`postprob_model0`, `postprob_model1`, etc.).
 
 For an alternative approach to differential expression analysis using [edgeR](http://dx.doi.org/10.1186/gb-2010-11-3-r25) or [DESeq](http://dx.doi.org/10.1186/gb-2010-11-10-r106), [view these instructions](https://github.com/eturro/mmseq/blob/master/doc/countsDE.md).
 

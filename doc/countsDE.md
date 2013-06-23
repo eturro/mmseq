@@ -1,6 +1,6 @@
 #### Feeding MMSEQ estimated counts to DESeq or edgeR
 
-The MMSEQ expression estimates are roughly in FPKM units (fragments per kilobase of transcript per million mapped reads or read pairs), which makes different samples broadly comparable. You may read in the output from multiple samples using the `mmseq.R` R script included in the `misc` directory (requires R &ge; 2.9). The `readmmseq` function defined in `mmseq.R` takes five optional arguments:
+The MMSEQ expression estimates are roughly in FPKM units (fragments per kilobase of transcript per million mapped reads or read pairs), which makes different samples broadly comparable. You may read in the output from multiple samples using the `mmseq.R` R script included in the `src/R` directory (requires R &ge; 2.9). The `readmmseq` function defined in `mmseq.R` takes five optional arguments:
 
 -  `mmseq_files`: vector of `.mmseq` files to read in
 -  `sample_names`: vector of strings containing the sample names
