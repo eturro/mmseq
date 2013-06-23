@@ -34,7 +34,7 @@ def divide_string(str, len=60)
   return res
 end
 
-tg_regexp = />(E\S+).*gene:(E\S+)/
+tg_regexp = />(\S+).*gene:(\S+).*/
 t_rxp_ind = 1
 g_rxp_ind = 2
 
@@ -58,7 +58,7 @@ if ARGV.size != 4 then
   $stderr.puts ""
   $stderr.puts "Arguments to option -m for use with non-Ensembl cDNA FASTA files:"
   $stderr.puts "  tg_regexp: regular expression matching FASTA entry names, where pairs of brackets"
-  $stderr.puts "             are used to capture transcript and gene IDs. Default: \"(E\\S+).*gene:(E\\S+)\""
+  $stderr.puts "             are used to capture transcript and gene IDs. Default: \"(\\S+).*gene:(\\S+).*\""
   $stderr.puts "  t_ind:     index of bracket pair that captures the transcript ID. Default: 1."
   $stderr.puts "  g_ind:     index of bracket pair that captures the gene ID. Default: 2."
   $stderr.puts ""

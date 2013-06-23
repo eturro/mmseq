@@ -15,7 +15,7 @@
 ##    along with this program; if not, write to the Free Software
 ##    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-tg_regexp = />(\S+).*gene:(\S+)$/
+tg_regexp = />(\S+).*gene:(\S+).*$/
 t_rxp_ind = 1
 g_rxp_ind = 2
 
@@ -30,7 +30,7 @@ else
   $stderr.puts ""
   $stderr.puts "Arguments to flag -m:"
   $stderr.puts "  tg_regexp: regular expression matching FASTA entry names, where pairs of brackets"
-  $stderr.puts "             are used to capture transcript and gene IDs. Default: \"(\\S+).*gene:(\\S+)\""
+  $stderr.puts "             are used to capture transcript and gene IDs. Default: \"(\\S+).*gene:(\\S+).*\""
   $stderr.puts "  t_ind:     index of bracket pair that captures the transcript ID. Default: 1."
   $stderr.puts "  g_ind:     index of bracket pair that captures the gene ID. Default: 2."
   $stderr.puts ""
