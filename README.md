@@ -226,5 +226,7 @@ Then clone the GitHub repository and run `make` from the `src` directory, which 
 
 ## Miscellany
 
+- Parallelism: the number of threads spawned by `bam2hits`, `mmseq` and `mmdiff` can be controlled by setting the `OMP_NUM_THREADS` environment variable. The value can be set immediately preceeding the command, e.g. `OMP_NUM_THREADS=8 mmseq sample.mmseq sample`.
+
 ## Software usage
 
