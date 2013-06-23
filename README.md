@@ -211,7 +211,7 @@ If you are unsure what regular expression to use, try out by trial and error usi
 
 ## Building from source 
 
-The [MMSEQ package](#installation) comes with statically-linked binaries for 64-bit Mac OS X and GNU/Linux, which should work out of the box on most systems. In order to build from source, install the following dependencies:
+The [MMSEQ package](#installation) comes with statically-linked binaries for 64-bit Mac OS X and GNU/Linux, which should work out of the box on most systems. In order to build from source, install the following dependencies ([more info](https://github.com/eturro/mmseq/blob/master/src/dependencies.md)):
 
 - [Boost C++ libraries](http://boost.org/)
 - [GNU Scientific Library](http://www.gnu.org/software/gsl)
