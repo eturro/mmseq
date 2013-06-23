@@ -201,6 +201,14 @@ Download the cDNA and ncRNA FASTA files for the Ensembl version and species of i
 
 #### FASTAs with other header conventions:
 
+MMSEQ works out of the box with Ensembl FASTA files, which follow the convention `>TID ... gene:GID ...`, where `TID` is the Ensembl transcript ID, `GID` is the Ensembl gene ID, and the `...` may contain other information, such as chromosomal location. In order to use FASTA files that follow a different convention, tell `bam2hits` how to extract the transcript and gene IDs from the FASTA header strings using the `-m tg_regexp t_ind g_ind` option. `tg_regexp` specifies a regular expression that matches FASTA entries (excluding the leading `>`), where pairs of brackets are used to identify the location of the transcript and gene ID strings. `t_ind` and `g_ind` are 1-based indexes to indicate which pair of brackets capture the transcript and gene IDs respectively. For example, if your entries looked like this:
+
+    >transcript1234 gene567|chr1|1234
+
+then run bowtie with --fullref and run `bam2hits` with `-m "(\S+) ([^\|]+)\|.*" 1 2`.
+
+If you are unsure what regular expression to use, try out by trial and error using the `testregexp.rb` script in the `bin` directory. After running `bam2hits` with the `-m` option, run `hitstools inspect hits_file` and compare the header and the main lines to make sure the extraction of IDs worked as expected.
+
 #### Making sample-specific transcript FASTAs through genotyping and phasing:
 
 ## Building from source 
