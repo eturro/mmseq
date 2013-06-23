@@ -230,6 +230,8 @@ Then clone the GitHub repository and run `make` from the `src` directory, which 
 
 ## Software usage
 
+See [authors](https://github.com/eturro/mmseq/blob/master/src/README.md#authors).
+
 `bam2hits`
 
     Usage: bam2hits [-v] [-t] [-m tg_regexp t_ind g_ind] [-i expected_isize sd_of_isizes] [-k] [-b] [-c alt_lengths] [-u alt_lengths] transcript_fasta sorted_bam > hits_file
@@ -346,3 +348,49 @@ Then clone the GitHub repository and run `make` from the `src` directory, which 
     Mandatory arguments:
       hits_file          hits file generated with `bam2hits`
 
+`fastagrep.sh`
+
+    Usage: fastagrep.sh: [-v] pattern fasta_file
+`testregexp.rb`
+
+    Usage: testregexp.rb -m tg_regexp t_ind g_ind cdna_file
+    Test regular expression patterns for use with `bam2hits` and `haploref.rb`.
+
+    Arguments to flag -m:
+      tg_regexp: regular expression matching FASTA entry names, where pairs of brackets
+                 are used to capture transcript and gene IDs. Default: "(\S+).*gene:(\S+).*"
+      t_ind:     index of bracket pair that captures the transcript ID. Default: 1.
+      g_ind:     index of bracket pair that captures the gene ID. Default: 2.
+
+      cdna_file: reference FASTA file.
+`filterGTF.rb`
+
+    Usage: filterGTF.rb cdna_file gtf_file > new_gtf_file
+    Filter GTF file according to transcripts in cDNA file.
+
+    Mandatory arguments:
+      cdna_file: Ensembl transcript FASTA file (e.g. Homo_sapiens.GRCh37.56.cdna.ref.fa).
+      gtf_file: Ensembl GTF file (e.g. Homo_sapiens.GRCh37.56.gtf).
+
+`haploref.rb`
+
+    Usage: haploref.rb [-m tg_regexp t_ind g_ind] cdna_file gff_file pos_file hap_file > hapiso_fasta
+    Generate haplotype and isoform specific FASTA reference.
+
+    Mandatory arguments:
+      cdna_file: default transcript FASTA file.
+      gff_file: GFF file containing structure annotation for transcripts in cdna_file.
+      pos_file: file containing, for each transcript, chromosome and positions of SNPs.
+      hap_file: file containing, for each transcript, two versions, e.g. suffixed _A and _B, on separate lines with the alleles for the two haplotypes at each position listed in the pos_file (A and B respectively).
+
+    Arguments to option -m for use with non-Ensembl cDNA FASTA files:
+      tg_regexp: regular expression matching FASTA entry names, where pairs of brackets
+                 are used to capture transcript and gene IDs. Default: "(\S+).*gene:(\S+).*"
+      t_ind:     index of bracket pair that captures the transcript ID. Default: 1.
+      g_ind:     index of bracket pair that captures the gene ID. Default: 2.
+
+`ensembl_gtf_to_gff.pl`
+
+    convert gtf file from Ensembl to gff3 file
+
+    Usage: ensembl_gtf_to_gff.pl gtf_file > gff_file
