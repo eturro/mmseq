@@ -78,6 +78,26 @@ typedef ublas::compressed_matrix<double> doubleMat;
 typedef intMat::iterator1 doubleMatIt1;
 typedef intMat::iterator2 doubleMatIt2;
 
+void tokenise(const string& str,
+                      vector<string>& tokens,
+                      const string& delimiters = " ")
+{
+    // Skip delimiters at beginning.
+    string::size_type lastPos = str.find_first_not_of(delimiters, 0);
+    // Find first "non-delimiter".
+    string::size_type pos     = str.find_first_of(delimiters, lastPos);
+
+    while (string::npos != pos || string::npos != lastPos)
+    {
+        // Found a token, add it to the vector.
+        tokens.push_back(str.substr(lastPos, pos - lastPos));
+        // Skip delimiters.  Note the "not_of"
+        lastPos = str.find_first_not_of(delimiters, pos);
+        // Find next "non-delimiter"
+        pos = str.find_first_of(delimiters, lastPos);
+    }
+}
+
 bool secondRowGreater(matrix_row<boolMat> a, matrix_row<boolMat> b) {
   for(matrix_row<boolMat>::iterator ita = a.begin(), itb = b.begin(); ; ita++, itb++) {
     bool enda = ita==a.end();
@@ -148,6 +168,7 @@ void printUsage(char *bin, ostream& out) {
       << "  -gibbs_iter INT    number of Gibbs iterations (default: 16384)" << endl
       << "  -gibbs_ss INT      subsampling interval for Gibbs output (default: gibbs_iter/1024)" << endl
       << "  -seed INT          seed for the PRNG in thread 0 (default: 1234)" << endl
+      << "  -percentiles STR   comma-separated list of real-scale marginal posterior percentiles to output (default: \"5,25,50,75,95\")" << endl
       << "  -debug             output additional diagnostic files" << endl
       << "  -help              print this help message" << endl
       << "  -version           print the version" << endl
@@ -168,6 +189,15 @@ int main(int argc, char **argv) {
   int gibbs_iter=16384;
   int trace_length=1024;
   int gibbs_ss=gibbs_iter/trace_length;
+
+  vector<double> percentiles=vector<double>(5);
+  percentiles[0]=5.0;
+  percentiles[1]=25.0;
+  percentiles[2]=50.0;
+  percentiles[3]=75.0;
+  percentiles[4]=95.0;
+
+  vector<string> tokens;
 
   int seed=1234;
 
@@ -205,6 +235,19 @@ int main(int argc, char **argv) {
     } else if(arguments.size() > 0 && arguments[0]=="-seed") {
       arguments.erase(arguments.begin());
       seed=atoi(arguments[0].c_str());
+      arguments.erase(arguments.begin());
+    } else if(arguments.size() > 0 && arguments[0]=="-percentiles") {
+      arguments.erase(arguments.begin());
+      tokenise(arguments[0], tokens, ",");
+      percentiles.resize(tokens.size());
+      for(int i=0; i < tokens.size(); i++) {
+        if(strtod(tokens[i].c_str(), NULL) >=0 && strtod(tokens[i].c_str(), NULL) <= 100) { 
+          percentiles[i]=strtod(tokens[i].c_str(), NULL);
+        } else {
+          cerr << "Percentiles must be in (0,100)\n";
+          exit(1);
+        }
+      }
       arguments.erase(arguments.begin());
     } else if(arguments.size() > 0 && arguments[0]=="-debug") {
       debug=true;
@@ -1063,6 +1106,91 @@ int main(int argc, char **argv) {
   gofs.pop();
   ofs.close(); ofs.clear();
 
+  // Posterior quantiles for features with hits
+  vector<double> percentiles_ind=percentiles;
+  for(int i=0; i < percentiles.size(); i++) { 
+    percentiles_ind[i]=static_cast<int>(round(percentiles[i]/100.0 * (trace_length-1)));
+  }
+  
+  vector< vector<double> > percentiles_prop(n);
+  vector< vector<double> > percentiles_transcript(n);
+  vector< vector<double> > percentiles_identical(identical_transcripts.size());
+  vector< vector<double> > percentiles_gene(gene2transcripts.size());
+  vector< vector<double> > vec(OMP_GET_MAX_THREADS);
+  for(int i=0; i < OMP_GET_MAX_THREADS; i++) {
+    vec[i]=vector<double>(trace_length);
+  }
+
+  # pragma omp parallel 
+  {
+  #pragma omp for schedule(static)
+  for(int i=0;i < n; i++) {
+    percentiles_prop[i]=vector<double>(percentiles.size());
+    percentiles_transcript[i]=vector<double>(percentiles.size());
+    for(int k=0; k < trace_length; k++) {
+      // props
+      vec[OMP_GET_THREAD_NUM][k]=prop_trace[i*trace_length + k];
+    }
+    std::sort (vec[OMP_GET_THREAD_NUM].begin(), vec[OMP_GET_THREAD_NUM].end());
+    for(int j=0; j < percentiles.size(); j++) {
+      percentiles_prop[i][j]= vec[OMP_GET_THREAD_NUM][percentiles_ind[j]];
+    }
+    for(int k=0; k < trace_length; k++) {
+      // transcripts
+      vec[OMP_GET_THREAD_NUM][k]=mu_trace[i*trace_length + k];
+    }
+    std::sort (vec[OMP_GET_THREAD_NUM].begin(), vec[OMP_GET_THREAD_NUM].end());
+    for(int j=0; j < percentiles.size(); j++) {
+      percentiles_transcript[i][j]= vec[OMP_GET_THREAD_NUM][percentiles_ind[j]];
+    }
+  }
+  #pragma omp for schedule(static)
+  for(int i=0;i < identical_transcripts.size(); i++) {
+    percentiles_identical[i]=vector<double>(percentiles.size());
+    for(int k=0; k < trace_length; k++) {
+      // identical 
+      vec[OMP_GET_THREAD_NUM][k]=mu_trace_identical[i*trace_length + k];
+    }
+    std::sort (vec[OMP_GET_THREAD_NUM].begin(), vec[OMP_GET_THREAD_NUM].end());
+    for(int j=0; j < percentiles.size(); j++) {
+      percentiles_identical[i][j]= vec[OMP_GET_THREAD_NUM][percentiles_ind[j]];
+    }
+  }
+  #pragma omp for schedule(static)
+  for(int i=0;i < gene2transcripts.size(); i++) {
+    percentiles_gene[i]=vector<double>(percentiles.size());
+    for(int k=0; k < trace_length; k++) {
+      // gene 
+      vec[OMP_GET_THREAD_NUM][k]=mu_trace_gene[i*trace_length + k];
+    }
+    std::sort (vec[OMP_GET_THREAD_NUM].begin(), vec[OMP_GET_THREAD_NUM].end());
+    for(int j=0; j < percentiles.size(); j++) {
+      percentiles_gene[i][j]= vec[OMP_GET_THREAD_NUM][percentiles_ind[j]];
+    }
+  }
+  }
+
+  map<string, vector<double> > percentiles_simu;
+  for(map<string, vector<double> >::iterator sit=mu_trace_simu.begin(); sit != mu_trace_simu.end(); sit++) {
+    vec[0]=sit->second;
+    sort(vec[0].begin(), vec[0].end());
+    percentiles_simu[sit->first]=vector<double>(percentiles.size());
+    for(int j=0; j < percentiles.size(); j++) {
+      percentiles_simu[sit->first][j]= vec[0][percentiles_ind[j]];
+    }
+  }
+
+  map<string, vector<double> > percentiles_prop_simu;
+  for(map<string, vector<double> >::iterator sit=prop_trace_simu.begin(); sit != prop_trace_simu.end(); sit++) {
+    vec[0]=sit->second;
+    sort(vec[0].begin(), vec[0].end());
+    percentiles_prop_simu[sit->first]=vector<double>(percentiles.size());
+    for(int j=0; j < percentiles.size(); j++) {
+      percentiles_prop_simu[sit->first][j]= vec[0][percentiles_ind[j]];
+    }
+  }
+
+
   // get means of logged posterior samples
   // Also do this for simulated transcript traces
   vector<double> meanmu(n,0);
@@ -1108,6 +1236,7 @@ int main(int argc, char **argv) {
   vector<double> meanprobitprop(n,0);
   vector<double> ssprobitprop(n,0);
   vector<double> sdprobitprop(n,0);
+
   for(int i=0; i < trace_length; i++) {
     double temp;
     for(int t=0; t < n; t++) {
@@ -1338,7 +1467,26 @@ int main(int argc, char **argv) {
 */
   ofs.open((output_base + ".mmseq").c_str());
   ofs << "# Mapped fragments: " << numbermappedreads << endl;
-  ofs << "feature_id\tlog_mu\tsd\tmcse\tiact\teffective_length\ttrue_length\tunique_hits\tmean_proportion\tmean_probit_proportion\tsd_probit_proportion\tlog_mu_em\tobserved\tntranscripts\n";
+  ofs << "feature_id\tlog_mu\tsd\tmcse\tiact\teffective_length\ttrue_length\tunique_hits\tmean_proportion\tmean_probit_proportion\tsd_probit_proportion\tlog_mu_em\tobserved\tntranscripts\t";
+  ofs << "percentiles";
+  for(int i=0; i < percentiles.size(); i++) {
+    ofs << percentiles[i];
+    if(i==percentiles.size()-1) {
+      ofs << "\t";
+    } else {
+      ofs << ",";
+    }
+  }
+  ofs << "percentiles_proportion";
+  for(int i=0; i < percentiles.size(); i++) {
+    ofs << percentiles[i];
+    if(i==percentiles.size()-1) {
+      ofs << "\n";
+    } else {
+      ofs << ",";
+    }
+  }
+
   for(strit = transcriptList.begin(); strit != transcriptList.end(); strit++) {
     if(sidIndex.count(*strit) > 0 ) {
       if(gene2transcripts.count(transcript2gene[*strit])==0) {
@@ -1353,13 +1501,29 @@ int main(int argc, char **argv) {
           << meanprobitprop[sidIndex[*strit]] << "\t"
           << sdprobitprop[sidIndex[*strit]] << "\t"
           << log(mu_em[sidIndex[*strit]]) << "\t"
-          << "1" << "\t" << gene2transcripts[transcript2gene[*strit]].size() << endl;
+          << "1" << "\t" << gene2transcripts[transcript2gene[*strit]].size() << "\t";
+      for(int i=0; i < percentiles.size(); i++) {
+        ofs << percentiles_transcript[sidIndex[*strit]][i] ;
+        if(i==percentiles.size()-1) {
+          ofs << "\t";
+        } else {
+          ofs << ",";
+        }
+      }
+      for(int i=0; i < percentiles.size(); i++) {
+        ofs << percentiles_prop[sidIndex[*strit]][i] ;
+        if(i==percentiles.size()-1) {
+          ofs << "\n";
+        } else {
+          ofs << ",";
+        }
+      }
     } else {
       ofs << *strit << "\t" << digalpha - log(beta + sidLen[*strit] * (double)numbermappedreads/1000000000.0) << "\t" << sqrtpolygalpha << "\t" 
           << "0" << "\t"
           << "1" << "\t" << sidLen[*strit] << "\t" << sidSeqLen[*strit] << "\t" << 0 << "\t" << meanprop_simu[*strit] << "\t" 
           << meanprobitprop_simu[*strit] << "\t" << sdprobitprop_simu[*strit] << "\t" << "NA" << "\t" << "0" << "\t"
-          << gene2transcripts[transcript2gene[*strit]].size() << endl;
+          << gene2transcripts[transcript2gene[*strit]].size() << "\t";
    /*   if(meanprop_map.count(*strit)>0) { // gene has hits but gene does
         ofs << *strit << "\t" << digalpha - log(beta + sidLen[*strit] * (double)numbermappedreads/1000000000.0) << "\t" << sqrtpolygalpha << "\t" << "0" << "\t"
             << "NA" << "\t" << sidLen[*strit] << "\t" << sidSeqLen[*strit] << "\t" << 0 << "\t" << meanprop_map[*strit] << "\t" 
@@ -1368,13 +1532,39 @@ int main(int argc, char **argv) {
         ofs << *strit << "\t" << digalpha - log(beta + sidLen[*strit] * (double)numbermappedreads/1000000000.0) << "\t" << sqrtpolygalpha << "\t" << "0" << "\t"
             << "NA" << "\t" << sidLen[*strit] << "\t" << sidSeqLen[*strit] << "\t" << 0 << "\t" << meanprop_map[*strit] << "\t" 
             << meanprobitprop_map[*strit] << "\t" << sdprobitprop_map[*strit] << "\t" << "NA" << endl; */
+      for(int i=0; i < percentiles.size(); i++) {
+        ofs << percentiles_simu[*strit][i] ;
+        if(i==percentiles.size()-1) {
+          ofs << "\t";
+        } else {
+          ofs << ",";
+        }
+      }
+      for(int i=0; i < percentiles.size(); i++) {
+        ofs << percentiles_prop_simu[*strit][i] ;
+        if(i==percentiles.size()-1) {
+          ofs << "\n";
+        } else {
+          ofs << ",";
+        }
+      }
     }
   }
   ofs.close();ofs.clear();
   
   ofs.open((output_base + ".identical.mmseq").c_str());
   ofs << "# Mapped fragments: " << numbermappedreads << endl;
-  ofs << "feature_id\tlog_mu\tsd\tmcse\tiact\teffective_length\ttrue_length\tunique_hits\tobserved\tntranscripts\n";
+  ofs << "feature_id\tlog_mu\tsd\tmcse\tiact\teffective_length\ttrue_length\tunique_hits\tobserved\tntranscripts\t";
+  ofs << "percentiles";
+  for(int i=0; i < percentiles.size(); i++) {
+    ofs <<  percentiles[i];
+    if(i==percentiles.size()-1) {
+      ofs << "\n";
+    } else {
+      ofs << ",";
+    }
+  }
+
   {
     int t=0;
     for(vector< vector<string> >::iterator idit = identical_transcripts.begin();
@@ -1386,7 +1576,15 @@ int main(int argc, char **argv) {
           else ofs << "\t" << meanmu_identical[t] << "\t"
                    << sd_identical[t] << "\t" << mumcse_identical[t]
                    << "\t" << iact_identical[t] << "\t" << sidLen[*(idit->begin())] << "\t"
-                   << sidSeqLen[*(idit->begin())] << "\t" << identical_unique_hits[t] << "\t" << "1" << "\t" << idit->size() << endl;
+                   << sidSeqLen[*(idit->begin())] << "\t" << identical_unique_hits[t] << "\t" << "1" << "\t" << idit->size() << "\t";
+        }
+        for(int i=0; i < percentiles.size(); i++) {
+          ofs << percentiles_identical[t][i] ;
+          if(i==percentiles.size()-1) {
+            ofs << "\n";
+          } else {
+            ofs << ",";
+          }
         }
       } else {
         for(strit = idit->begin(); strit != idit->end(); strit++) {
@@ -1395,9 +1593,19 @@ int main(int argc, char **argv) {
           else ofs << "\t" << log(idit->size()) + digalpha - log(beta + sidLen[*strit] * (double)numbermappedreads/1000000000.0) << "\t" 
                    << sqrtpolygalpha << "\t"
                    << "0" << "\t" << "NA" << "\t" << sidLen[*(idit->begin())] << "\t"
-                   << sidSeqLen[*(idit->begin())] << "\t" << 0 << "\t" << "0" << "\t" << idit->size() << endl;
+                   << sidSeqLen[*(idit->begin())] << "\t" << 0 << "\t" << "0" << "\t" << idit->size() << "\t";
         }
+        for(int i=0; i < percentiles.size(); i++) {
+          ofs << "NA"; //percentiles_identical[t][i] ;
+          if(i==percentiles.size()-1) {
+            ofs << "\n";
+          } else {
+            ofs << ",";
+          }
+        }
+
       }
+
       t++;
     }
   }
@@ -1405,7 +1613,17 @@ int main(int argc, char **argv) {
 
   ofs.open((output_base + ".gene.mmseq").c_str());
   ofs << "# Mapped fragments: " << numbermappedreads << endl;
-  ofs << "feature_id\tlog_mu\tsd\tmcse\tiact\teffective_length\ttrue_length\tunique_hits\tntranscripts\tobserved\n";
+  ofs << "feature_id\tlog_mu\tsd\tmcse\tiact\teffective_length\ttrue_length\tunique_hits\tntranscripts\tobserved\t";
+  ofs << "percentiles";
+  for(int i=0; i < percentiles.size(); i++) {
+    ofs << percentiles[i];
+    if(i==percentiles.size()-1) {
+      ofs << "\n";
+    } else {
+      ofs << ",";
+    }
+  }
+
   {
     int g=0;
     for(map<string, vector<string> >::iterator git = gene2transcripts.begin();
@@ -1421,12 +1639,29 @@ int main(int argc, char **argv) {
         ofs << git->first  << "\t" << meanmu_gene[g] << "\t" 
             << sd_gene[g] << "\t" << mumcse_gene[g] << "\t" << iact_gene[g] << "\t" << gene_lengths[g] <<  "\t"
             << "NA" << "\t" << gene_unique_hits[g] << "\t"
-            << (git->second).size() << "\t" << "1" << endl;
+            << (git->second).size() << "\t" << "1" << "\t";
+        for(int i=0; i < percentiles.size(); i++) {
+          ofs << percentiles_gene[g][i] ;
+          if(i==percentiles.size()-1) {
+            ofs << "\n";
+          } else {
+            ofs << ",";
+          }
+        }
       } else {
-          ofs << git->first <<  "\t" << meanmu_gene[g] << "\t" << sd_gene[g] << "\t"
-            << sd_gene[g]/sqrt(trace_length) << "\t" << 1 << "\t" << gene_lengths[g] << "\t" 
-            << "NA" << "\t" << "0" << "\t" << (git->second).size() << "\t" << "0" << endl;
+        ofs << git->first <<  "\t" << meanmu_gene[g] << "\t" << sd_gene[g] << "\t"
+          << sd_gene[g]/sqrt(trace_length) << "\t" << 1 << "\t" << gene_lengths[g] << "\t" 
+          << "NA" << "\t" << "0" << "\t" << (git->second).size() << "\t" << "0" << "\t";
+        for(int i=0; i < percentiles.size(); i++) {
+          ofs << percentiles_gene[g][i];
+          if(i==percentiles.size()-1) {
+            ofs << "\n";
+          } else {
+            ofs << ",";
+          }
+        }
       }
+
       g++;
     }
   }
