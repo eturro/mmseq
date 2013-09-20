@@ -45,7 +45,7 @@ endif
   
 
 .PHONY : all
-all : mmseq bam2hits extract_transcripts hitstools t2g_hits mmcollapse mmdiff
+all : mmseq bam2hits extract_transcripts offsetGTF hitstools t2g_hits mmcollapse mmdiff
 
 mmseq : sokal.o uh.o hitsio.o mmseq.cpp
 	$(CXX) ${MACROS} $(CXXFLAGS) ${OMP} ${OPT} $^ -o ${BINDIR}/$@${SUFFIX} ${LIBS}
@@ -54,6 +54,9 @@ bam2hits : fasta.o hitsio.o bam2hits.cpp
 	${CXX} ${MACROS} $(CXXFLAGS) ${OMP} ${OPT} $^ -o ${BINDIR}/$@${SUFFIX} ${LIBS}
 
 extract_transcripts : fasta.o extract_transcripts.cpp
+	${CXX} ${MACROS} $(CXXFLAGS) ${OPT} $^ -o ${BINDIR}/$@${SUFFIX}
+
+offsetGTF : offsetGTF.cpp
 	${CXX} ${MACROS} $(CXXFLAGS) ${OPT} $^ -o ${BINDIR}/$@${SUFFIX}
 
 hitstools: hitsio.o hitstools.cpp
