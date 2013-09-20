@@ -11,7 +11,7 @@ BINDIR=../bin
 
 CC = gcc
 CXX = g++
-LIBS = -lgsl -lgslcblas -lboost_regex -lbam -lboost_iostreams -lz -llapack -lblas -larmadillo -lgfortran
+LIBS = -lgsl -lgslcblas -lboost_regex -lbam -lboost_iostreams -lz -llapack -lblas -lgfortran
 OMP = -fopenmp
 OPT = -O3
 OPTSAFE = -O2
@@ -36,7 +36,11 @@ ifdef STATIC
   ifeq ($(shell echo `uname -s`),Linux)
     $(warning "Static compilation for Linux")
     CXXFLAGS += -static -Wl,--whole-archive -lpthread -Wl,--no-whole-archive
+		LIBS += -lcblas -latlas
   endif
+endif
+ifndef STATIC
+  LIBS += -larmadillo
 endif
   
 
