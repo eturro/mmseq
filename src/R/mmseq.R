@@ -20,9 +20,11 @@ readmmseq <- function( mmseq_files = grep("gene|identical", dir( pattern="\\.mms
   ntranscripts<- c()
   observed<- c()
   dup_sample_names <- c()
+  percentiles <- list()
+  percentiles_proportion <- list()
 	cat( "Reading mmseq output files\n" )
 	for( i in 1:length(mmseq_files) ) {
-		dat = read.table( mmseq_files[i], header=TRUE, stringsAsFactors=FALSE, sep="\t")
+		dat = read.table( mmseq_files[i], header=TRUE, stringsAsFactors=FALSE, check.names=FALSE, sep="\t")
     if(! any(colnames(dat)=="log_mu") ||
        ! any(colnames(dat)=="sd") || 
        ! any(colnames(dat)=="mcse") || 
@@ -67,6 +69,23 @@ readmmseq <- function( mmseq_files = grep("gene|identical", dir( pattern="\\.mms
       observed <- cbind(observed, dat$observed[x])
       effective_lengths <- cbind(effective_lengths, dat$effective_length[x])
       true_lengths <- cbind(true_lengths, dat$true_length[x])
+
+      if(length(grep("percentiles[0-9]", names(dat))) == 1) {
+        percentiles[[i]] <- do.call(rbind, lapply(dat[[grep("percentiles[0-9]", names(dat))]][x], function(y) {
+          as.numeric(strsplit(y, ",")[[1]]) 
+        }))
+        colnames(percentiles[[i]])=strsplit(gsub("percentiles","", grep("percentiles[0-9]", names(dat), value=TRUE)), ",")[[1]]
+      }
+
+      if(length(grep("percentiles_proportion[0-9]", names(dat))) == 1) {
+        percentiles_proportion[[i]] <- do.call(rbind, lapply(dat[[grep("percentiles_proportion[0-9]", names(dat))]][x], function(y) {
+          as.numeric(strsplit(y, ",")[[1]]) 
+        }))
+        colnames(percentiles_proportion[[i]])=strsplit(gsub("percentiles_proportion","", grep("percentiles_proportion[0-9]", names(dat), value=TRUE)), ",")[[1]]
+      }
+
+
+
       if(i==1) {
         rownames(mu) = rownames(sd) = rownames(mcse)= rownames(iact) = rownames(unique_hits)=rownames(ntranscripts)=rownames(observed)=rownames(true_lengths)=rownames(effective_lengths)=
           sub(partition, "", dat[x,grepl("id", colnames(dat))])
@@ -119,7 +138,7 @@ readmmseq <- function( mmseq_files = grep("gene|identical", dir( pattern="\\.mms
     }
   }
   
-  return(list(log_mu=mu, sd=sd, mcse=mcse, iact=iact, effective_length=effective_lengths, true_length=true_lengths, unique_hits=unique_hits, ntranscripts=ntranscripts[,1], observed=observed, counts=counts))
+  return(list(log_mu=mu, sd=sd, mcse=mcse, iact=iact, effective_length=effective_lengths, true_length=true_lengths, unique_hits=unique_hits, ntranscripts=ntranscripts[,1], observed=observed, counts=counts, percentiles=percentiles, percentiles_proportion=percentiles_proportion))
 }
 
 polyclass <- function(files, prior=NULL) {
