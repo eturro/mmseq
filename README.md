@@ -345,6 +345,10 @@ See [authors](https://github.com/eturro/mmseq/blob/master/src/README.md#authors)
 `extract_transcripts`
 
     Usage: extract_transcripts fasta_file ensembl_gtf_file
+    
+`offsetGTF`
+
+    Usage: offsetGTF ensembl_gtf_file indel_vcf_file
 
 `t2g_hits`
 
@@ -356,6 +360,7 @@ See [authors](https://github.com/eturro/mmseq/blob/master/src/README.md#authors)
 `fastagrep.sh`
 
     Usage: fastagrep.sh: [-v] pattern fasta_file
+
 `testregexp.rb`
 
     Usage: testregexp.rb -m tg_regexp t_ind g_ind cdna_file
@@ -368,6 +373,7 @@ See [authors](https://github.com/eturro/mmseq/blob/master/src/README.md#authors)
       g_ind:     index of bracket pair that captures the gene ID. Default: 2.
 
       cdna_file: reference FASTA file.
+      
 `filterGTF.rb`
 
     Usage: filterGTF.rb cdna_file gtf_file > new_gtf_file
