@@ -46,7 +46,6 @@
 
 #define TRACELEN 1024
 #define IACTTHRES 1.1
-#define ALPHA 0.975
 #define SDPENALTY 0.0
 
 using ublas::prod;
@@ -94,8 +93,9 @@ bool stringCompare( const string &left, const string &right ){
 }
 
 void printUsage(char *bin, ostream& out) {
-  out << "Usage: mmcollapse basename1 basename2..." << endl
-      << endl;
+      out << "Usage: mmcollapse [-thres FLOAT] basename1 [basename2...]" << endl;
+      out << "       -thres FLOAT   stopping threshold as -percentile of the maximum (over transcripts)" << endl
+          << "                      mean (over samples) correlation (default 97.5)" << endl;
 }
 
 // find 0-unique-hit transcripts with SD > max(SD of transcripts with 1 unique hit and IACT < thres)
@@ -545,7 +545,7 @@ int main(int argc, char **argv) {
   gsl_rng * rg = gsl_rng_alloc (gsl_rng_mt19937);
   gsl_rng_set(rg, 13837);
 
-  bool debug=true;
+  bool debug=false;
 
   // DEFAULT PARAMETER VALUES
   double alpha=0.1;
@@ -558,17 +558,35 @@ int main(int argc, char **argv) {
   ifstream ifs;
   boost::iostreams::filtering_stream<boost::iostreams::input> gifs;
   gifs.push(boost::iostreams::gzip_decompressor());
-  ofstream ofs;
+  ofstream ofs,ofs2;
 
   vector<string> basenames;
 
+  double stoppingthreshold=0.975;
+
   // parse arguments
-  for(int i=1; i < argc; i++) basenames.push_back(string(argv[i]));
+  for(int i=1; i < argc; i++) {
+    if(string(argv[i])=="-thres" && argc> i+1) {
+      stoppingthreshold=strtod(argv[i+1], NULL)/100.0;
+      if(stoppingthreshold <= 0 || stoppingthreshold > 1) {
+        printUsage(argv[0],cerr);
+      }
+      i++;
+    } else if(string(argv[i]).find("-") == 0) {
+      printUsage(argv[0],cerr);
+      exit(1);
+    } else {
+      basenames.push_back(string(argv[i]));
+    }
+  }
 
   if(basenames.size() < 1) {
     printUsage(argv[0], cerr);
     exit(1);
   }
+
+  cerr << "Stopping threshold: -" << stoppingthreshold*100 << "th percentile of the distribution of correlations\n";
+
 
   // Find "unidentifiable" candidate transcripts
   // Later remove transcripts with zero hits across all samples
@@ -667,27 +685,41 @@ int main(int argc, char **argv) {
   cerr << "done.\n";
  
   cerr << "Threshold for mean anti-correlation: ";
-  vector<double> maxcorrs;
+  vector<double> maxcorrs, mincorrs;
   for(map<string,int>::iterator it=cand2ind.begin(); it != cand2ind.end(); it++) {
     double m = -1;
+    double mm = 1;
     for(map<string,int>::iterator it2=cand2ind.begin(); it2 != cand2ind.end(); it2++) {
       if( it->second != it2->second && V(it->second,it2->second) > m) {
         m = V(it->second,it2->second);
       }
+      if( it->second != it2->second && V(it->second,it2->second) < mm) {
+        mm = V(it->second,it2->second);
+      }
     }
     maxcorrs.push_back(m);
+    mincorrs.push_back(mm);
   }
   sort(maxcorrs.begin(), maxcorrs.end());
+  sort(mincorrs.begin(), mincorrs.end());
   if(debug) {
     ofs.open("maxcorrs");
     for(int i=0 ;i < maxcorrs.size(); i++) {
       ofs << maxcorrs[i] << " ";
     }
+    ofs << endl;
     ofs.close(); ofs.clear();
+    ofs.open("mincorrs");
+    for(int i=0 ;i < mincorrs.size(); i++) {
+      ofs << mincorrs[i] << " ";
+    }
+    ofs << endl;
+    ofs.close(); ofs.clear();
+
   }
 
 
-  double thr= -maxcorrs[floor(maxcorrs.size() * ALPHA)];
+  double thr= -maxcorrs[floor(maxcorrs.size() * stoppingthreshold)];
   cerr << thr << endl;
 
   uword minrow, mincol;
@@ -719,6 +751,44 @@ int main(int argc, char **argv) {
     if(find(blacklist.begin(), blacklist.end(), mincol)!=blacklist.end()) {
       cerr << "BOOPS " << minrow <<  " " << mincol << " " << V(minrow,mincol) << endl;
     }
+
+
+    if(debug) {
+      maxcorrs.clear();
+      mincorrs.clear();
+      for(map<string,int>::iterator it=cand2ind.begin(); it != cand2ind.end(); it++) {
+        double m = -1;
+        double mm = 1;
+        for(map<string,int>::iterator it2=cand2ind.begin(); it2 != cand2ind.end(); it2++) {
+          if( it->second != it2->second && V(it->second,it2->second) > m) {
+            m = V(it->second,it2->second);
+          }
+          if( it->second != it2->second && V(it->second,it2->second) < mm) {
+            mm = V(it->second,it2->second);
+          }
+        }
+        maxcorrs.push_back(m);
+        mincorrs.push_back(mm);
+      }
+      sort(maxcorrs.begin(), maxcorrs.end());
+      sort(mincorrs.begin(), mincorrs.end());
+      if(debug) {
+        ofs2.open("maxcorrs", std::ofstream::app);
+        for(int i=0 ;i < maxcorrs.size(); i++) {
+          ofs2 << maxcorrs[i] << " ";
+        }
+        ofs2 << endl;
+        ofs2.close(); ofs2.clear();
+        ofs2.open("mincorrs", std::ofstream::app);
+        for(int i=0 ;i < mincorrs.size(); i++) {
+          ofs2 << mincorrs[i] << " ";
+        }
+        ofs2 << endl;
+        ofs2.close(); ofs2.clear();
+      }
+    }
+
+
 
     nco++;
   }
