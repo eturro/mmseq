@@ -112,14 +112,14 @@ if [[ ! -e $GENOMEFASTA ]]; then
 else
   echo "WARNING: found $GENOMEFASTA, not downloading. Delete and re-run to force download." >&2 
 fi
-if [[ ! -e $Mus_musculus.$GENOMEVERSION.$ENSMBLVERSION.gtf.gz ]]; then
-  wget ftp://ftp.ensembl.org/pub/release-$ENSEMBLVERSION/gtf/mus_musculus/Mus_musculus.$GENOMEVERSION.$ENSMBLVERSION.gtf.gz
+if [[ ! -e $Mus_musculus.$GENOMEVERSION.$ENSEMBLVERSION.gtf.gz ]]; then
+  wget ftp://ftp.ensembl.org/pub/release-$ENSEMBLVERSION/gtf/mus_musculus/Mus_musculus.$GENOMEVERSION.$ENSEMBLVERSION.gtf.gz
   if [[ ! $? -eq 0 ]]; then
     echo "Error downloading file" >&2
     exit 1
   fi
 else
-  echo "WARNING: found $Mus_musculus.$GENOMEVERSION.$ENSMBLVERSION.gtf.gz, not downloading. Delete and re-run to force download." >&2 
+  echo "WARNING: found $Mus_musculus.$GENOMEVERSION.$ENSEMBLVERSION.gtf.gz, not downloading. Delete and re-run to force download." >&2 
 fi
 
 
@@ -130,11 +130,11 @@ if [[ ! -e $GENOMEFASTA.fai ]]; then
   samtools faidx $GENOMEFASTA
 fi
 
-gunzip -c Mus_musculus.$GENOMEVERSION.$ENSMBLVERSION.gtf.gz > Mus_musculus.$GENOMEVERSION.$ENSMBLVERSION.gtf
+gunzip -c Mus_musculus.$GENOMEVERSION.$ENSEMBLVERSION.gtf.gz > Mus_musculus.$GENOMEVERSION.$ENSEMBLVERSION.gtf
 
 java -Xmx4g -jar ${PICARD_HOME}/CreateSequenceDictionary.jar REFERENCE=$GENOMEFASTA OUTPUT=`basename $GENOMEFASTA .fa`.dict
 
-extract_transcripts${MSSUF} $GENOMEFASTA Mus_musculus.$GENOMEVERSION.$ENSMBLVERSION.gtf > C57BL6_transcriptome$ENSMBLVERSION.fa
+extract_transcripts${MSSUF} $GENOMEFASTA Mus_musculus.$GENOMEVERSION.$ENSEMBLVERSION.gtf > C57BL6_transcriptome$ENSEMBLVERSION.fa
 
 for STRAIN in ${STRAINS[@]}; do
 
@@ -199,9 +199,9 @@ awk "$AWKEXP" $GENOMEVERSION.${STRAIN}.gatk.fa > $GENOMEVERSION.${STRAIN}.fa
 
 bgzip -d -c mgp.$SANGERVERSION.${STRAIN}.snps_indels.annot.reformat.filter.vcf.gz | awk 'BEGIN { OFS="\t" } /^#/ {print;next } { if(length($4) != length($5)) { print }}' > mgp.$SANGERVERSION.${STRAIN}.indels.annot.reformat.filter2.vcf
 
-offsetGTF${MSSUF} Mus_musculus.$GENOMEVERSION.$ENSMBLVERSION.gtf mgp.$SANGERVERSION.${STRAIN}.indels.annot.reformat.filter2.vcf > Mus_musculus.${STRAIN}.$GENOMEVERSION.$ENSMBLVERSION.gtf
+offsetGTF${MSSUF} Mus_musculus.$GENOMEVERSION.$ENSEMBLVERSION.gtf mgp.$SANGERVERSION.${STRAIN}.indels.annot.reformat.filter2.vcf > Mus_musculus.${STRAIN}.$GENOMEVERSION.$ENSEMBLVERSION.gtf
 
 rm mgp.$SANGERVERSION.${STRAIN}.indels.annot.reformat.filter2.vcf
 
-extract_transcripts${MSSUF} $GENOMEVERSION.${STRAIN}.fa Mus_musculus.${STRAIN}.$GENOMEVERSION.$ENSMBLVERSION.gtf > ${STRAIN}_transcriptome$ENSMBLVERSION.fa
+extract_transcripts${MSSUF} $GENOMEVERSION.${STRAIN}.fa Mus_musculus.${STRAIN}.$GENOMEVERSION.$ENSEMBLVERSION.gtf > ${STRAIN}_transcriptome$ENSEMBLVERSION.fa
 done
