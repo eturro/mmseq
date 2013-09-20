@@ -148,7 +148,7 @@ void parse_mmseq(vector<string> filenames, vector<string> & features, Mat<double
         e.resize((k+1)*2,filenames.size());
         uh.resize((k+1)*2,filenames.size());
       }
-      if(tokens[lmg_ind]=="NA") {
+      if(!useprops && tokens[lmg_ind]=="NA" || useprops && tokens[mp_ind]=="NA") {
         cerr << "Error: encountered NA" << endl;
         exit(1);
       } else {
@@ -178,18 +178,20 @@ void parse_mmseq(vector<string> filenames, vector<string> & features, Mat<double
     features=features2;
   }
   if(useprops) {
-    Mat<double> newy(0, y.n_cols);
-    Mat<double> newe(0, e.n_cols);
-    Mat<double> newuh(0, e.n_cols);
-    vector<string> newfeatures;
-    for(int i=0; i < y.n_rows; i++) {
-      if(!isinf(y(i,0))) {
-        newy.insert_rows(newy.n_rows, y.row(i));
-        newe.insert_rows(newe.n_rows, e.row(i));
-        newuh.insert_rows(newuh.n_rows, uh.row(i));
-        newfeatures.push_back(features[i]);
+    Mat<double> newy=y;
+    Mat<double> newe=e;
+    Mat<double> newuh=uh;
+    vector<string> newfeatures=features;
+
+    for(int i=y.n_rows-1; i >= 0; i--) {
+      if(isinf(y(i,0))) {
+        newy.shed_row(i);
+        newe.shed_row(i);
+        newuh.shed_row(i);
+        newfeatures.erase(newfeatures.begin()+i);
       } 
     }
+
     y = newy;
     e = newe;
     uh = newuh;
