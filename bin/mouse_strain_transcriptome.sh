@@ -1,7 +1,7 @@
 #!/bin/sh
 
-## Script to create strain-specific mouse trancriptome fasta 
-## Tweak below as required
+## Script to create strain-specific mouse trancriptome and genome fastas
+## Tweak variables below as required
 
 ENSEMBLVERSION=70
 SANGERFTP=ftp-mouse.sanger.ac.uk
@@ -12,6 +12,8 @@ INDELFILE=mgp.$SANGERVERSION.indels.rsIDdbSNPv137.vcf.gz
 GENOMEFASTA=GRCm38_68.fa
 GENOMEVERSION=GRCm38
 STRAINS=(129P2 129S1 129S5 AJ AKRJ BALBcJ C3HHeJ C57BL6NJ CASTEiJ CBAJ DBA2J FVBNJ LPJ NODShiLtJ NZOHlLtJ PWKPhJ SPRETEiJ WSBEiJ)
+
+## Edit below at your own risk
 
 echo "Welcome." >&2
 echo "I will produce strain-specific genomes and transcriptomes using the Sanger mouse genomes project data" >&2
