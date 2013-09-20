@@ -414,10 +414,24 @@ int main(int argc, char** argv) {
       arguments.erase(arguments.begin());
     } else if(arguments.size() >0 && arguments[0]=="-m") {
       arguments.erase(arguments.begin());
+      for(int i=0; i < arguments.size(); i++) {
+        if(arguments[i].find("-")==0) {
+          cerr << "Error: optional arguments must be specified before -de or -m." << endl << endl;
+          printUsage(argv[0], cerr);
+          exit(1);
+        }
+      }
       matrices_file=arguments[0];
       arguments.erase(arguments.begin());
     } else if(arguments.size() >0 && arguments[0]=="-de") {
       arguments.erase(arguments.begin());
+      for(int i=0; i < arguments.size(); i++) {
+        if(arguments[i].find("-")==0) {
+          cerr << "Error: optional arguments must be specified before -de or -m." << endl << endl;
+          printUsage(argv[0], cerr);
+          exit(1);
+        }
+      }
       cerr << "Number of samples in each group:";
       while(ss < arguments.size()) {
         simple_de.push_back(atoi(arguments[0].c_str()));
