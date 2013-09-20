@@ -8,6 +8,7 @@ Ernest Turro wrote all the code in this package except
   - `fasta.c`/`h`: Bio5495/BME537 Computational Molecular Biology, Michigan State University
 
 ## Changelog
+  - 2013-09-20: MMSEQ 1.0.6 released, added percentiles output to mmseq (e.g. to obtain credibility intervals); various minor improvements
   - 2013-06-16: MMSEQ 1.0.5 released, fixed bug in mmdiff beta update; added polyclass() R function for polytomous model classification
   - 2013-06-11: MMSEQ 1.0.4 released, fixed bugs in mmdiff apparent when M.n\_cols > 1
   - 2013-06-09: MMSEQ 1.0.3 released, fixed beta update (covariates common to all models can now be taken into account); added -de convenience option for mmdiff; also fixed harmless bug that could strip first character of sample names in mmdiff output header
