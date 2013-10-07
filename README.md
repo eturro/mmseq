@@ -184,7 +184,7 @@ It is possible to collapse sets of transcripts based on posterior correlation es
 
     mmcollapse basename1 basename2...
 
-Here, `basename` is the name of the `mmseq` output files without the suffixes (such as `.mmseq` and `.gene.mmseq`). The command creates a set of new transcript-level MMSEQ files with the suffix `.collapsed.mmseq`, which can be used to perform more powerful transcript-level [differential analysis](#differential-expression-analysis).
+Here, `basename1 basename2...` corresponds to the name of the `mmseq` output files without the suffixes (such as `.mmseq` and `.gene.mmseq`). Pass all the basenames from the same experiment to `mmcollapse` in one go to ensure the collapsings are consistent across samples. The command creates a set of new transcript-level MMSEQ files with the suffix `.collapsed.mmseq`, which can be used to perform more powerful transcript-level [differential analysis](#differential-expression-analysis).
 
 ## Reference files
 #### Ready to download:
