@@ -36,6 +36,14 @@
 #include <gsl/gsl_randist.h>
 #include <gsl/gsl_rng.h>
 #include "uh.hh"
+#ifdef _OPENMP
+  #include <omp.h>
+  #define OMP_GET_MAX_THREADS omp_get_max_threads()
+  #define OMP_GET_THREAD_NUM omp_get_thread_num()
+#else
+  #define OMP_GET_MAX_THREADS 1
+  #define OMP_GET_THREAD_NUM 0
+#endif // _OPENMP
 
 #define QUOTE_(x) #x
 #define QUOTE(x) QUOTE_(x)
@@ -498,16 +506,22 @@ void mean_corrs(const cube &R, const umat &S, mat &V, mat &W, vector<int> ts,
 
 
 void get_corrs(cube &R, mat &M, const vector<string> & basenames, map<string, int> & cand2ind) {
-  vector<string> sources;
-  vector<string> tokens;
-  ifstream ifs;
-  boost::iostreams::filtering_stream<boost::iostreams::input> gifs;
-  gifs.push(boost::iostreams::gzip_decompressor());
-  string str;
-  sources.push_back(".");
-  sources.push_back(".identical.");
-  cerr << "Reading posterior traces and calculating variance-covariance matrices...\n";
+
+  cerr << "Reading posterior traces and computing variance-covariance matrices using " << min(OMP_GET_MAX_THREADS, (int)basenames.size()) << " thread(s)" << endl
+        << "this step requires up to " << setprecision(2) << M.n_cols*M.n_cols*7.450581e-09 << " GB per thread; re-run with a lower value for OMP_NUM_THREADS to use less memory but more CPU...\n";
+  #pragma omp parallel for shared(R, M) schedule(static)
   for(int s=0; s < basenames.size(); s++) {
+    vector<string> sources;
+    vector<string> tokens;
+    ifstream ifs;
+    boost::iostreams::filtering_stream<boost::iostreams::input> gifs;
+    gifs.push(boost::iostreams::gzip_decompressor());
+    string str;
+    sources.push_back(".");
+    sources.push_back(".identical.");
+    mat myM(M);
+    #pragma omp critical
+    {
     for(vector<string>::iterator strit=sources.begin(); strit < sources.end(); strit++) {
       cerr << "\t" << basenames[s] << *strit << "trace_gibbs.gz" << endl;
       ifs.open((basenames[s] + *strit + "trace_gibbs.gz").c_str(), ios_base::in | ios_base::binary);
@@ -523,15 +537,16 @@ void get_corrs(cube &R, mat &M, const vector<string> & basenames, map<string, in
         for(int t=0; t < tokens.size(); t++) {
           gifs >> str;
           if(cand2ind.count(tokens[t]) > 0 ) {
-            if(str=="NA") M(i,cand2ind[tokens[t]])=math::nan();
-            M(i,cand2ind[tokens[t]])=atof(str.c_str());
+            if(str=="NA") myM(i,cand2ind[tokens[t]])=math::nan();
+            myM(i,cand2ind[tokens[t]])=atof(str.c_str());
           }
         }
       }
       gifs.pop();
       ifs.close();ifs.clear();
     }
-    R.slice(s) = cov(M);
+    }
+    R.slice(s) = cov(myM);
     // Set nans to 0
     for(cube::slice_iterator it=R.begin_slice(s); it != R.end_slice(s); it++) {
       if(! is_finite(*it)) *it = 0;

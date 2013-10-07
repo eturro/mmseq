@@ -66,7 +66,7 @@ t2g_hits : t2g_hits.cpp
 	${CXX} ${MACROS} $(CXXFLAGS) ${OPT} $^ -o ${BINDIR}/$@${SUFFIX}
 
 mmcollapse: uh.o sokal.o mmcollapse.cpp
-	${CXX} ${MACROS} ${CXXFLAGS} ${OMP} ${OPT} $^ -o ${BINDIR}/$@${SUFFIX} ${LIBS}
+	${CXX} ${MACROS} -DARMA_64BIT_WORD ${CXXFLAGS} ${OMP} ${OPT} $^ -o ${BINDIR}/$@${SUFFIX} ${LIBS}
 
 mmdiff: bms.o mmdiff.cpp
 	${CXX} ${MACROS} ${CXXFLAGS} ${OMP} ${OPTSAFE} $^ -o ${BINDIR}/$@${SUFFIX} ${LIBS}
