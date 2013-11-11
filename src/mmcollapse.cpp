@@ -69,6 +69,10 @@ typedef ublas::compressed_matrix<bool> boolMat;
 typedef boolMat::iterator1 boolMatIt1;
 typedef boolMat::iterator2 boolMatIt2;
 
+bool strorder ( const pair<string,int>& l, const pair<string,int>& r){
+  return l.first < r.first;
+}
+
 void tokenise(const string& str,
                       vector<string>& tokens,
                       const string& delimiters = " ")
@@ -1069,8 +1073,18 @@ int main(int argc, char **argv) {
     }
 */
 
+    vector<pair<string,int> > strind;
+    for(int i=0; i < ids.size(); i++) {
+      pair<string, int> pa;
+      pa.first=ids[i];
+      pa.second=i;
+      strind.push_back(pa);
+    }
+    sort(strind.begin(), strind.end(), strorder);
+
     ofs << "feature_id\tlog_mu\tsd\tmcse\teffective_length\tiact\tunique_hits\n";
-    for(int t = 0; t < M.n_cols; t++) {
+    for(int v = 0; v < M.n_cols; v++) {
+      int t=strind[v].second;
       if(shed.count(t) > 0) continue;
       double thismu=conv_to<double>::from(M.col(t).t() * ones<colvec>(TRACELEN) / TRACELEN);
       if(isfinite(thismu)) {
