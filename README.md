@@ -14,7 +14,7 @@ If you use the MMSEQ package, please cite:
 
 If you use the `mmdiff` or `mmcollapse` programs, please also cite:
 
-- Flexible analysis of RNA-seq data using mixed effects models. Turro E, Astle WJ and Tavar&eacute; S. To appear in *Bioinformatics*.
+- Flexible analysis of RNA-seq data using mixed effects models. Turro E, Astle WJ and Tavar&eacute; S. Bioinformatics, 2013. doi: [10.1093/bioinformatics/btt624](http://dx.doi.org/10.1093/bioinformatics/btt624).
 
 ## Key features
 - Isoform-level expression analysis (works out of the box with Ensembl cDNA and ncRNA files)
