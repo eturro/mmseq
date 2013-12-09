@@ -673,9 +673,27 @@ int main(int argc, char** argv) {
   cerr << "]):\n";
   Mat<double> Z= ones(P0.n_rows, fixalpha ? 0 : 1);
   if(!mcmc.Misnil()) Z.insert_cols(Z.n_cols,M);
-  if(!mcmc.Pisnil(0)) Z.insert_cols(Z.n_cols,P0);
+
+  if(det(trans(Z)*Z)==0) {
+    cerr << "Error: collinearity in combined matrix of intercept and covariates for model 0" << endl;
+    exit(1);
+  }
+
+  if(!mcmc.Pisnil(0)) {
+    Z.insert_cols(Z.n_cols,P0);
+    if(det(trans(P0)*P0)==0) {
+      cerr << "Error: collinearity in matrix P0" << endl;
+      exit(1);
+    }
+  }
+
   cerr << Z;
-  
+
+  if(det(trans(Z)*Z)==0) {
+    cerr << "Warning: collinearity in full matrix of predictors for model 0" << endl;
+  }
+
+
   cerr << "Design matrix for model 1 ([";
   if(!fixalpha) cerr << "1";
   if(!fixalpha && (!mcmc.Misnil() || !mcmc.Pisnil(1))) cerr << "|";
@@ -685,12 +703,23 @@ int main(int argc, char** argv) {
   cerr << "]):\n";
   Z= ones(P1.n_rows, fixalpha ? 0 : 1);
   if(!mcmc.Misnil()) Z.insert_cols(Z.n_cols,M);
-  if(!mcmc.Pisnil(1)) Z.insert_cols(Z.n_cols,P1);
+
+  if(det(trans(Z)*Z)==0) {
+    cerr << "Error: collinearity in combined matrix of intercept and covariates for model 1" << endl;
+    exit(1);
+  }
+
+  if(!mcmc.Pisnil(1)) {
+    Z.insert_cols(Z.n_cols,P1);
+    if(det(trans(P1)*P1)==0) {
+      cerr << "Error: collinearity in matrix P1" << endl;
+      exit(1);
+    }
+  }
   cerr << Z;
 
   if(det(trans(Z)*Z)==0) {
-    cerr << "Error: singular covariate matrix " << endl;
-    exit(1);
+    cerr << "Warning: collinearity in full matrix of predictors for model 1" << endl;
   }
 
   if(mcmc.Misnil()) 
