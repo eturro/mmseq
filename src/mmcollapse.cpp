@@ -393,7 +393,7 @@ void get_unidentifiable_transcripts(const string filename,
 }*/
 
 // Collapse sets of transcripts given by sorted! indexes, updating R, candidates and cand2ind
-void collapse(cube &R, vector<string> & candidates, map<string, int> & cand2ind, vector<int> indexes) {
+void collapse(fcube &R, vector<string> & candidates, map<string, int> & cand2ind, vector<int> indexes) {
   // Update variances and covariances
   for(int s=0; s < R.n_slices; s++) {
     for(int t=0; t < candidates.size(); t++) {
@@ -438,7 +438,7 @@ void collapse(cube &R, vector<string> & candidates, map<string, int> & cand2ind,
   }
 }
 
-map<int,int> join_traces(mat &M, vector<string> &allnames, vector<string> candidates) {
+map<int,int> join_traces(fmat &M, vector<string> &allnames, vector<string> candidates) {
   map<string, int> tmap;
   for(int t=0; t < allnames.size(); t++) tmap[allnames[t]]=t;
   sort(candidates.begin(), candidates.end());
@@ -478,13 +478,13 @@ map<int,int> join_traces(mat &M, vector<string> &allnames, vector<string> candid
 }
 
 // set mean corrs in V
-void mean_corrs(const cube &R, const umat &S, mat &V, mat &W, vector<int> ts, 
+void mean_corrs(const fcube &R, const umat &S, fmat &V, fmat &W, vector<int> ts, 
   vector<int> bl = vector<int>(), double sdpenalty=0) {
   for(vector<int>::iterator it=ts.begin(); it != ts.end(); it++) {
     for(int v= 0; v < R.n_rows; v++) {
-      colvec r = (colvec)R.subcube(*it,v,0,*it,v,R.n_slices-1);
-      r = r/sqrt((colvec)R.subcube(*it,*it,0,*it,*it,R.n_slices-1));
-      r = r/sqrt((colvec)R.subcube(v,v,0,v,v,R.n_slices-1));
+      fcolvec r = (fcolvec)R.subcube(*it,v,0,*it,v,R.n_slices-1);
+      r = r/sqrt((fcolvec)R.subcube(*it,*it,0,*it,*it,R.n_slices-1));
+      r = r/sqrt((fcolvec)R.subcube(v,v,0,v,v,R.n_slices-1));
       urowvec u(S.row(*it) % S.row(v));
       // where u is zero, make sure r is zero (might not be if there was /0)
       for(int i=0; i < u.size(); i++) {
@@ -509,7 +509,7 @@ void mean_corrs(const cube &R, const umat &S, mat &V, mat &W, vector<int> ts,
 }
 
 
-void get_corrs(cube &R, mat &M, const vector<string> & basenames, map<string, int> & cand2ind) {
+void get_corrs(fcube &R, fmat &M, const vector<string> & basenames, map<string, int> & cand2ind) {
 
   cerr << "Reading posterior traces and computing variance-covariance matrices using " << min(OMP_GET_MAX_THREADS, (int)basenames.size()) << " thread(s)" << endl
         << "this step requires up to " << setprecision(2) << M.n_cols*M.n_cols*7.450581e-09 << " GB per thread; re-run with a lower value for OMP_NUM_THREADS to use less memory but more CPU...\n";
@@ -523,7 +523,7 @@ void get_corrs(cube &R, mat &M, const vector<string> & basenames, map<string, in
     string str;
     sources.push_back(".");
     sources.push_back(".identical.");
-    mat myM(M);
+    fmat myM(M);
     #pragma omp critical
     {
     for(vector<string>::iterator strit=sources.begin(); strit < sources.end(); strit++) {
@@ -552,7 +552,7 @@ void get_corrs(cube &R, mat &M, const vector<string> & basenames, map<string, in
     }
     R.slice(s) = cov(myM);
     // Set nans to 0
-    for(cube::slice_iterator it=R.begin_slice(s); it != R.end_slice(s); it++) {
+    for(fcube::slice_iterator it=R.begin_slice(s); it != R.end_slice(s); it++) {
       if(! is_finite(*it)) *it = 0;
     }
   }
@@ -690,13 +690,13 @@ int main(int argc, char **argv) {
     }
   }
 
-  mat M(TRACELEN, candidates.size());
-  cube R(candidates.size(), candidates.size(), basenames.size());
+  fmat M(TRACELEN, candidates.size());
+  fcube R(candidates.size(), candidates.size(), basenames.size());
   get_corrs(R, M, basenames, cand2ind);
 
   cerr << "Calculating mean and s.d. of correlations...";
-  mat V(candidates.size(), candidates.size()); // mean correlations
-  mat W(candidates.size(), candidates.size()); // sds
+  fmat V(candidates.size(), candidates.size()); // mean correlations
+  fmat W(candidates.size(), candidates.size()); // sds
   vector<int> ts;
   for(int i=0; i < candidates.size(); i++) ts.push_back(i);
 
@@ -1057,7 +1057,7 @@ int main(int argc, char **argv) {
     for(strit = all_features.begin(); strit != all_features.end(); strit++) {
       if(iszero.count(*strit)<1) {
         if(shed.count(feature2ind[*strit]) > 0) continue;
-        double thismu=conv_to<double>::from(M.col(feature2ind[*strit]).t() * ones<colvec>(TRACELEN) / TRACELEN);
+        double thismu=conv_to<double>::from(M.col(feature2ind[*strit]).t() * ones<fcolvec>(TRACELEN) / TRACELEN);
         if(isfinite(thismu)) {
           ofs << tokens[feature2ind[*strit]] << "\t" << thismu << "\t"
             << mumcse[feature2ind[*strit]] << "\t" << "NA" << "\t" << iact[feature2ind[*strit]] << "\t" << unique_hits[feature2ind[*strit]] << endl;
@@ -1086,7 +1086,7 @@ int main(int argc, char **argv) {
     for(int v = 0; v < M.n_cols; v++) {
       int t=strind[v].second;
       if(shed.count(t) > 0) continue;
-      double thismu=conv_to<double>::from(M.col(t).t() * ones<colvec>(TRACELEN) / TRACELEN);
+      double thismu=conv_to<double>::from(M.col(t).t() * ones<fcolvec>(TRACELEN) / TRACELEN);
       if(isfinite(thismu)) {
         ofs << ids[t] << "\t" << thismu << "\t"
           << sd[t] << "\t" << mumcse[t] << "\t" << "NA" << "\t" << iact[t] << "\t" << unique_hits[t] << endl;
