@@ -233,6 +233,23 @@ Then clone the GitHub repository and run `make` from the `src` directory, which 
 
 - Parallelism: the number of threads spawned by `bam2hits`, `mmseq` and `mmdiff` can be controlled by setting the `OMP_NUM_THREADS` environment variable. The value can be set immediately preceeding the command, e.g. `OMP_NUM_THREADS=8 mmseq sample.mmseq sample`.
 
+- The `.hits` files contain a header section and a main section. The header contains three metadata sections with lines beginning with `@`:
+
+    - `@TranscriptMetaData`: information about each of the  transcripts. Each line contains transcript ID, effective transcript length, true transcript length
+    - `@GeneIsoforms`: grouping of transcripts into genes. Each line contains gene ID, transcript ID 1, transcript ID 2, ...
+    - `@IdenticalTranscripts`: grouping of transcripts into identical sets. Each line contains transcript ID 1, transcript ID 2, ...
+
+The remainder of the `.hits` file links each read with a set of transcripts. E.g.:
+
+    >read1
+    transcriptA
+    transcriptB
+    >read2
+    transcript C
+    ...
+
+The full file can be printed out with the command `hitstools t hits_file` (see below).
+
 ## Software usage
 
 See [authors](https://github.com/eturro/mmseq/blob/master/src/README.md#authors).
