@@ -8,6 +8,7 @@ Ernest Turro wrote all the code in this package except
   - `fasta.c`/`h`: Bio5495/BME537 Computational Molecular Biology, Michigan State University
 
 ## Changelog
+  - 2014-01-09: MMSEQ 1.0.8 released, mmcollapse bugfix (incorrect SDs sometimes output previously) 
   - 2013-11-11: MMSEQ 1.0.7 released, performance improvements to mmcollapse; added code to generate strain-specific transcriptome and genome FASTAs
   - 2013-09-20: MMSEQ 1.0.6 released, added percentiles output to mmseq (e.g. to obtain credibility intervals); various minor improvements
   - 2013-06-16: MMSEQ 1.0.5 released, fixed bug in mmdiff beta update; added polyclass() R function for polytomous model classification
