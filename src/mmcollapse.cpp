@@ -511,8 +511,8 @@ void mean_corrs(const cube &R, const umat &S, mat &V, mat &W, vector<int> ts,
 
 void get_corrs(cube &R, mat &M, const vector<string> & basenames, map<string, int> & cand2ind) {
 
-  cerr << "Reading posterior traces and computing variance-covariance matrices using " << min(OMP_GET_MAX_THREADS, (int)basenames.size()) << " thread(s)" << endl
-        << "this step requires up to " << setprecision(2) << M.n_cols*M.n_cols*7.450581e-09 << " GB per thread; re-run with a lower value for OMP_NUM_THREADS to use less memory but more CPU...\n";
+  cerr << "Reading posterior traces and computing variance-covariance matrices using " << OMP_GET_MAX_THREADS << " thread(s)" << endl
+        << "note: this step requires approximately " << setprecision(2) << 2*M.n_cols*M.n_cols*7.450581e-09 + TRACELEN * M.n_cols*7.450581e-09 << " GB plus " << setprecision(2) << M.n_cols*M.n_cols*7.450581e-09 << " GB per thread; re-run with a lower value of OMP_NUM_THREADS to use less memory.\n";
   #pragma omp parallel for shared(R, M) schedule(static)
   for(int s=0; s < basenames.size(); s++) {
     vector<string> sources;
@@ -527,7 +527,7 @@ void get_corrs(cube &R, mat &M, const vector<string> & basenames, map<string, in
     #pragma omp critical
     {
     for(vector<string>::iterator strit=sources.begin(); strit < sources.end(); strit++) {
-      cerr << "\t" << basenames[s] << *strit << "trace_gibbs.gz" << endl;
+      cerr << "\t" << basenames[s] << *strit << "trace_gibbs.gz (thread " << omp_get_thread_num() << ")" << endl;
       ifs.open((basenames[s] + *strit + "trace_gibbs.gz").c_str(), ios_base::in | ios_base::binary);
       gifs.push(ifs);
       if(!ifs.good()) {
@@ -603,6 +603,8 @@ int main(int argc, char **argv) {
     printUsage(argv[0], cerr);
     exit(1);
   }
+
+  omp_set_num_threads(min(OMP_GET_MAX_THREADS, (int)basenames.size()));
 
   cerr << "Stopping threshold: -" << stoppingthreshold*100 << "th percentile of the distribution of correlations\n";
 
@@ -921,10 +923,10 @@ int main(int argc, char **argv) {
     map<int,int> shed = join_traces(M, ids, forcollapsing);
 
     M=log(M);
+    double sd[M.n_cols];
     double mumcse[M.n_cols];
     double iact[M.n_cols];
     double mu_trace[M.n_rows];
-    double sd[M.n_rows];
     for(int t=0; t < M.n_cols; t++) {
       if(shed.count(t) >0) continue;
       memcpy(mu_trace, &conv_to<std::vector<double> >::from(M.col(t))[0], sizeof( double ) * TRACELEN );
