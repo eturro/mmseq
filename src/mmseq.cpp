@@ -810,7 +810,7 @@ int main(int argc, char **argv) {
   }
 
   if(debug) {
-    gofs.flush(); gofs.pop(); gofs.reset();
+    gofs.pop();
     ofs.close(); ofs.clear();
   }
 
@@ -920,7 +920,7 @@ int main(int argc, char **argv) {
   delete [] Xcolsums;
 
   cout << endl;
-  gofs.flush(); gofs.pop(); gofs.reset();
+  gofs.pop();
   ofs.close(); ofs.clear();
 
   cout << "Amalgamating transcripts and calculating summary statistics..." << flush;
@@ -1062,7 +1062,7 @@ int main(int argc, char **argv) {
     }
     gofs << endl;
   }
-  gofs.flush(); gofs.pop(); gofs.reset();
+  gofs.pop();
   ofs.close(); ofs.clear();
 
   ofs.open(tgg_file, ios_base::out | ios_base::binary | ios_base::trunc);
@@ -1087,7 +1087,7 @@ int main(int argc, char **argv) {
     }
     gofs << endl;
   }
-  gofs.flush(); gofs.pop(); gofs.reset();
+  gofs.pop();
   ofs.close(); ofs.clear();
 
 
@@ -1103,7 +1103,7 @@ int main(int argc, char **argv) {
     }
     gofs << endl;
   }
-  gofs.flush(); gofs.pop(); gofs.reset();
+  gofs.pop();
   ofs.close(); ofs.clear();
 
   // Posterior quantiles for features with hits
