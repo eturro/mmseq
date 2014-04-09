@@ -55,7 +55,7 @@ The current release is 1.0.8 ([changelog](https://github.com/eturro/mmseq/tree/m
 
 The example commands below assume that the FASTQ files are `asample_1.fq` and `asample_2.fq` (paired-end) and the FASTA file is `Homo_sapiens.GRCh37.70.ref_transcripts.fa`.
 
-#### Step 1: Index the reference transcript sequences
+#### Step 1: Index the reference transcript sequences with Bowtie 1 (not Bowtie 2)
 
     bowtie-build --offrate 3 Homo_sapiens.GRCh37.70.ref_transcripts.fa Homo_sapiens.GRCh37.70.ref_transcripts 
 
