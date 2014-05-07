@@ -75,6 +75,7 @@ If the insert size distribution overlaps the read length, trim back the reads to
 - Always specify `-a` to ensure you get multi-mapping alignments
 - Suppress alignments for reads that map to a huge number of transcripts with the `-m` option (e.g. `-m 100`)
 - Adjust `-X` according to the maximum insert size
+- Specify --norc if the data were generated following a forward-stranded protocol
 - If the reference FASTA file doesn't use the [Ensembl convention](#fastas-with-other-header-conventions), then also specify `--fullref`
 - The read names must end with /1 or /2, not /3 or /4 (this can be corrected with `awk 'FNR % 4==1 { sub(/\/[34]$/, "/2") } { print }' secondreads.fq > secondreads-new.fq`).
 - If there are multiple FASTQ files from the same library, feed them all together to Bowtie in one go (delimit the FASTQ file names with commas)
