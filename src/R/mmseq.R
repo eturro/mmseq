@@ -1,6 +1,6 @@
 readmmseq <- function( mmseq_files = grep("gene|identical", dir( pattern="\\.mmseq$" ), value=TRUE, invert=TRUE),
-		 sample_names = sub("\\.mmseq","", mmseq_files), normalize=TRUE, partition="", common_set=NULL) {
-	
+		 sample_names = sub("\\.mmseq","", mmseq_files), normalize=TRUE, uhfrac=NULL, partition="", common_set=NULL) {
+
 	cat( "Using mmseq files:\n", paste("\t", mmseq_files, sep="", collapse="\n"), "\n") 
 	cat( "Using sample names:\n", paste("\t", sample_names, sep="", collapse="\n"), "\n") 
 	if( length(mmseq_files) == 0 || length(sample_names)  != length(mmseq_files) ) {
@@ -122,7 +122,11 @@ readmmseq <- function( mmseq_files = grep("gene|identical", dir( pattern="\\.mms
 	
   if(normalize && ncol(mu)>1) {
     cat("Normalizing expression estimates with log factors:\n")
-    minfrac = max(0.2, (ncol(mu) - floor(ncol(mu)^2/160))/ncol(mu))
+    if(!is.null(uhfrac)) {
+      minfrac = max(0.2, (ncol(mu) - floor(ncol(mu)^2/160))/ncol(mu))
+    } else {
+      minfrac=uhfrac
+    }
     cat("Min frac: ", minfrac, "\n")
     uh = apply(unique_hits,1,function(x){sum(x>=1) >= minfrac*length(x) })
     sf <- apply(mu[uh,] - rowMeans(mu[uh,], na.rm=TRUE) ,2, function(x){median(x[is.finite(x)])})
