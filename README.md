@@ -202,6 +202,16 @@ Download the cDNA and ncRNA FASTA files for the Ensembl version and species of i
     gunzip Homo_sapiens.GRCh37.72.*.fa.gz
     cat Homo_sapiens.GRCh37.72.ncrna.fa >> Homo_sapiens.GRCh37.72.cdna.all.fa
     fastagrep.sh -v 'supercontig|GRCh37:[^1-9XMY]' Homo_sapiens.GRCh37.72.cdna.all.fa > Homo_sapiens.GRCh37.72.ref_transcripts.fa # for humans only
+    rm Homo_sapiens.GRCh37.72.cdna.all.fa Homo_sapiens.GRCh37.72.ncrna.fa # clean up
+
+For mice, you may need to remove patches and unscaffolded contigs. E.g.:
+
+    wget ftp://ftp.ensembl.org/pub/release-75/fasta/mus_musculus/cdna/Mus_musculus.GRCm38.75.cdna.all.fa.gz
+    wget ftp://ftp.ensembl.org/pub/release-75/fasta/mus_musculus/ncrna/Mus_musculus.GRCm38.75.ncrna.fa.gz
+    gunzip Mus_musculus.GRCm38.75.*.fa.gz
+    cat Mus_musculus.GRCm38.75.ncrna.fa >> Mus_musculus.GRCm38.75.cdna.all.fa
+    fastagrep.sh -v 'scaffold|PATCH' Mus_musculus.GRCm38.75.cdna.all.fa > Mus_musculus.GRCm38.75.ref_transcripts.fa # for mice only
+    rm Mus_musculus.GRCm38.75.cdna.all.fa Mus_musculus.GRCm38.75.ncrna.fa # clean up
 
 #### FASTAs with other header conventions:
 
