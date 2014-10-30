@@ -154,7 +154,7 @@ polyclass <- function(files, prior=NULL) {
     warning("Assuming flat prior across models")
     prior <- rep(1/n,n)
   } 
-  if(length(prior) != n || sum(prior) != 1) {
+  if(length(prior) != n || !all.equal(sum(prior),1)) {
     stop("Specify a vector of ", n, " prior probabilities adding up to 1")
   }
   print("Note: make sure model 0 is the same in each comparison (only model 1 should differ)")
