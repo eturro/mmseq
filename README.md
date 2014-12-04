@@ -158,11 +158,103 @@ where the matrices file contains:
     .5
     -.5
 
+The resulting design matrices and associated coefficients would be:
+
+    # model 0 ([1|P0]):
+    alpha0
+    1
+    1
+    1
+    1
+    
+    # model 1 ([1|P1])
+    alpha1 eta1_0
+    1 -.5
+    1 -.5
+    1 .5
+    1 .5
+
+Model-independent nuisance covariates can be specified in the M matrix. E.g. in a 3 vs 3 comparison with a single binary nuisance covariate, use:
+
+    # M; no. of rows = no. of observations
+    1
+    0
+    1
+    0
+    1
+    0
+    # C; no. of rows = no. of observations and no. of columns = 2 (one for each model)
+    0 0
+    0 0
+    0 0
+    0 1
+    0 1
+    0 1
+    # P0(collapsed); no. of rows = no. of classes for model 0
+    1
+    # P1(collapsed); no. of rows = no. of classes for model 1
+    .5
+    -.5
+
+The resulting design matrices and associated coefficients would be:
+
+    # model 0 ([1|M|P0]):
+    alpha0 beta0
+    1 1
+    1 0
+    1 1
+    1 0
+    1 1
+    1 0
+    
+    # model 1 ([1|M|P1])
+    alpha1 beta1 eta1_0
+    1 1 -.5
+    1 0 -.5
+    1 1 -.5
+    1 0 .5
+    1 1 .5
+    1 0 .5
+
 For a three-way differential expression analysis with three, three and two observations per group respectively, [this matrices file](https://raw.github.com/eturro/mmseq/master/doc/332.mat) would be appropriate (equivalent to using `-de 3 3 2`).
 
 In order to assess whether the log fold change between group A and group B is different to the log fold change between group C and group D, assuming there are two observations per group, [this matrices file](https://raw.github.com/eturro/mmseq/master/doc/dod2.mat) would be appropriate.
 
 By default, `mmdiff` includes a global intercept alpha. If you prefer to fix alpha=0 and instead use the M covariate matrix to define multiple independent intercepts (beta), then set the option `-fixalpha`.
+
+`mmdiff` can also be used to obtain class-specific expression summaries without performing model comparison. To do this, specify a prior probability of either model to zero (use `-p 0`), remove the intercept term using `-fixalpha` and use the M matrix to group samples into groups using a matrices file such as the following, which groups samples into sets of two:
+
+    # M; no. of rows = no. of observations
+    1 0 0
+    1 0 0
+    0 1 0
+    0 1 0
+    0 0 1
+    0 0 1
+    # C; no. of rows = no. of observations and no. of columns = 2 (one for each model)
+    0 0
+    0 0
+    0 0
+    0 0
+    0 0
+    0 0
+    # P0(collapsed); no. of rows = no. of classes for model 0
+    1
+    # P1(collapsed); no. of rows = no. of classes for model 1
+    1
+
+The resulting design matrix and associated coefficients would then be:
+
+    # model 0 ([M]):
+    beta0_0 beta0_1 beta0_2
+    1 0 0
+    1 0 0
+    0 1 0
+    0 1 0
+    0 0 1
+    0 0 1
+    
+Thus, the posterior summaries encoded in `beta0_0`, `beta0_1`, `beta0_2` would represent the class-specific expression estimates.
 
 For further advice on setting up the matrices file for a particular study design, do not hesitate to contact the corresponding author.
 
