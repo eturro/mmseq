@@ -169,10 +169,10 @@ The resulting design matrices and associated coefficients would be:
     
     # model 1 ([1|P1])
     alpha1 eta1_0
-    1 -.5
-    1 -.5
     1 .5
     1 .5
+    1 -.5
+    1 -.5
 
 Model-independent nuisance covariates can be specified in the M matrix. E.g. in a 3 vs 3 comparison with a single binary nuisance covariate, use:
 
@@ -209,12 +209,12 @@ The resulting design matrices and associated coefficients would be:
     
     # model 1 ([1|M|P1])
     alpha1 beta1 eta1_0
-    1 1 -.5
-    1 0 -.5
-    1 1 -.5
-    1 0 .5
     1 1 .5
     1 0 .5
+    1 1 .5
+    1 0 -.5
+    1 1 -.5
+    1 0 -.5
 
 For a three-way differential expression analysis with three, three and two observations per group respectively, [this matrices file](https://raw.github.com/eturro/mmseq/master/doc/332.mat) would be appropriate (equivalent to using `-de 3 3 2`).
 
