@@ -317,7 +317,7 @@ If you are unsure what regular expression to use, try out by trial and error usi
 
 ## Building from source 
 
-The [MMSEQ package](#installation) comes with semi-statically-linked binaries for 64-bit Mac OS X and GNU/Linux, which should work out of the box on most systems. However, if you get an `Illegal instruction (core dumped)' error, it is likely that you need to re-compile the binaries on your system to get them to work. In order to build from source, install the following dependencies ([more info](https://github.com/eturro/mmseq/blob/master/src/dependencies.md)):
+The [MMSEQ package](#installation) comes with semi-statically-linked binaries for 64-bit Mac OS X and GNU/Linux, which should work out of the box on most systems. However, if you get an `Illegal instruction (core dumped)` error, it is likely that you need to re-compile the binaries on your system to get them to work. In order to build from source, install the following dependencies ([more info](https://github.com/eturro/mmseq/blob/master/src/dependencies.md)):
 
 - [Boost C++ libraries](http://boost.org/)
 - [GNU Scientific Library](http://www.gnu.org/software/gsl)
