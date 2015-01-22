@@ -122,7 +122,7 @@ readmmseq <- function( mmseq_files = grep("gene|identical", dir( pattern="\\.mms
 	
   if(normalize && ncol(mu)>1) {
     cat("Normalizing expression estimates with log factors:\n")
-    if(!is.null(uhfrac)) {
+    if(is.null(uhfrac)) {
       minfrac = max(0.2, (ncol(mu) - floor(ncol(mu)^2/160))/ncol(mu))
     } else {
       minfrac=uhfrac
