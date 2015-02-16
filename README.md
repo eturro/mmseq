@@ -64,7 +64,7 @@ The example commands below assume that the FASTQ files are `asample_1.fq` and `a
 #### Step 2a: Trim out adapter sequences if necessary
 If the insert size distribution overlaps the read length, trim back the reads to exclude adapter sequences. [Trim Galore!](http://www.bioinformatics.babraham.ac.uk/projects/trim_galore/) works well. E.g. for libraries prepared using standard Illumina adapters (`AGATCGGAAGAGC`), run:
 
-    trim_galore -q 15 -s 3 -e 0.05 --length 36 --trim1 --paired asample_1.fq.gz asample_2.fq.gz
+    trim_galore -q 15 --stringency 3 -e 0.05 --length 36 --trim1 --paired asample_1.fq.gz asample_2.fq.gz
 
 #### Step 2b: Align reads with Bowtie 1 (not Bowtie 2)
 
