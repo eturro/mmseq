@@ -218,7 +218,7 @@ The resulting design matrices and associated coefficients would be:
 
 For a three-way differential expression analysis with three, three and two observations per group respectively, [this matrices file](https://raw.github.com/eturro/mmseq/master/doc/332.mat) would be appropriate (equivalent to using `-de 3 3 2`).
 
-In order to assess whether the log fold change between group A and group B is different to the log fold change between group C and group D, assuming there are two observations per group, [this matrices file](https://raw.github.com/eturro/mmseq/master/doc/dod2.mat) would be appropriate.
+In order to assess whether the log fold change between group A and group B is different (as opposed to equal) to the log fold change between group C and group D, assuming there are two observations per group, [this matrices file](https://raw.github.com/eturro/mmseq/master/doc/dod2.mat) would be appropriate.
 
 By default, `mmdiff` includes a global intercept alpha. If you prefer to fix alpha=0 and instead use the M covariate matrix to define multiple independent intercepts (beta), then set the option `-fixalpha`. This can be used to obtain class-specific expression summaries without performing model comparison: specify a prior probability of either model to zero (use `-p 0`), remove the intercept term using `-fixalpha` and use the M matrix to group samples into groups using a matrices file such as the following, which groups samples into sets of two:
 
