@@ -132,7 +132,13 @@ fi
 
 gunzip -c Mus_musculus.$GENOMEVERSION.$ENSEMBLVERSION.gtf.gz > Mus_musculus.$GENOMEVERSION.$ENSEMBLVERSION.gtf
 
-java -Xmx4g -jar ${PICARD_HOME}/CreateSequenceDictionary.jar REFERENCE=$GENOMEFASTA OUTPUT=`basename $GENOMEFASTA .fa`.dict
+if [[ -e "${PICARD_HOME}/CreateSequenceDictionary.jar" ]]; then
+  java -Xmx4g -jar ${PICARD_HOME}/CreateSequenceDictionary.jar REFERENCE=$GENOMEFASTA OUTPUT=`basename $GENOMEFASTA .fa`.dict
+elif [[ -e "${PICARD_HOME}/picard.jar" ]]; then
+  java -Xmx4g -jar ${PICARD_HOME}/picard.jar CreateSequenceDictionary REFERENCE=$GENOMEFASTA OUTPUT=`basename $GENOMEFASTA .fa`.dict
+else
+  echo "Could not find Picard's CreateSequenceDictionary tool." >&2
+fi
 
 extract_transcripts${MSSUF} $GENOMEFASTA Mus_musculus.$GENOMEVERSION.$ENSEMBLVERSION.gtf > C57BL6_transcriptome$ENSEMBLVERSION.fa
 
