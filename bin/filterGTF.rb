@@ -47,7 +47,8 @@ rxp = Regexp.new('.*transcript_id \"(E\S+)\".*')
 File.open(GTF_FILENAME) do |f|
   while(!f.eof?) do
     s = f.gets
-    unless tids[rxp.match(s)[1]].nil?
+    if s[0,1] == "#" then next end
+    unless rxp.match(s).nil? or tids[rxp.match(s)[1]].nil?
       print s
     end
   end
