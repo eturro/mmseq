@@ -262,7 +262,7 @@ Description of the output:
 2.  **bayes\_factor:** the Bayes factor in favour of the second model
 3.  **posterior\_probability:** the posterior probability in favour of the second model (the prior probability is recorded in a # comment at the top of the file)
 4.  **alpha0 and alpha1:** estimated posterior mean of the global intercept for each model
-5.  **beta0\_0, beta0\_1..., beta1\_0, beta1\_0:** estimated posterior means of the regression coefficients of the model-independent covariate matrix M under each model
+5.  **beta0\_0, beta0\_1..., beta1\_0, beta1\_1...:** estimated posterior means of the regression coefficients of the model-independent covariate matrix M under each model
 6.  **eta0\_0, eta0\_1..., eta1\_0, eta1\_1...:** estimated posterior means of the regression coefficients of the model-dependent matrix P under each model
 7.  **mu\_sample1, mu\_sample2,... sd\_sample1, sd\_sample2,...:** the data, i.e. the posterior means and standard deviations used as the outcomes
 
