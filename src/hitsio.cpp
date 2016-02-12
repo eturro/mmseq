@@ -343,7 +343,7 @@ bool HitsfileReader::readReadMapRecordReadIDSchema0(string &readID) {
 
 bool HitsfileReader::readReadMapRecordTranscriptIDSchema0(string &transcriptID) {
 	if ((ifs.eof()) || (ifs.peek() == '>')) { return false; }
-	return(getline(ifs, transcriptID));
+	return(static_cast<bool>(getline(ifs, transcriptID)));
 }
 
 void HitsfileReader::readHeaderSchema1(vector<string> *transcriptName, map<string, double> *transcriptEffectiveLength,
