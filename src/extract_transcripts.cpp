@@ -111,6 +111,7 @@ int main(int argc, char** argv) {
     ifs.getline(buf16384,16384);
     if(ifs.eof()) { break; }
     str=buf16384;
+    if(str.find("#")==0) continue;
     vector<string> tokens;
     tokenise(str, tokens, "\t");
     if(tokens[2].compare("exon")==0) {

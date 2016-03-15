@@ -64,7 +64,7 @@ The example commands below assume that the FASTQ files are `asample_1.fq` and `a
 #### Step 2a: Trim out adapter sequences if necessary
 If the insert size distribution overlaps the read length, trim back the reads to exclude adapter sequences. [Trim Galore!](http://www.bioinformatics.babraham.ac.uk/projects/trim_galore/) works well. E.g. for libraries prepared using standard Illumina adapters (`AGATCGGAAGAGC`), run:
 
-    trim_galore -q 15 -s 3 -e 0.05 --length 36 --trim1 --paired asample_1.fq.gz asample_2.fq.gz
+    trim_galore -q 15 --stringency 3 -e 0.05 --length 36 --trim1 --paired asample_1.fq.gz asample_2.fq.gz
 
 #### Step 2b: Align reads with Bowtie 1 (not Bowtie 2)
 
@@ -224,7 +224,7 @@ The resulting design matrices and associated coefficients would be:
 
 For a three-way differential expression analysis with three, three and two observations per group respectively, [this matrices file](https://raw.github.com/eturro/mmseq/master/doc/332.mat) would be appropriate (equivalent to using `-de 3 3 2`).
 
-In order to assess whether the log fold change between group A and group B is different to the log fold change between group C and group D, assuming there are two observations per group, [this matrices file](https://raw.github.com/eturro/mmseq/master/doc/dod2.mat) would be appropriate.
+In order to assess whether the log fold change between group A and group B is different (as opposed to equal) to the log fold change between group C and group D, assuming there are two observations per group, [this matrices file](https://raw.github.com/eturro/mmseq/master/doc/dod2.mat) would be appropriate.
 
 By default, `mmdiff` includes a global intercept alpha. If you prefer to fix alpha=0 and instead use the M covariate matrix to define multiple independent intercepts (beta), then set the option `-fixalpha`. This can be used to obtain class-specific expression summaries without performing model comparison: specify a prior probability of either model to zero (use `-p 0`), remove the intercept term using `-fixalpha` and use the M matrix to group samples into groups using a matrices file such as the following, which groups samples into sets of two:
 
@@ -268,7 +268,7 @@ Description of the output:
 2.  **bayes\_factor:** the Bayes factor in favour of the second model
 3.  **posterior\_probability:** the posterior probability in favour of the second model (the prior probability is recorded in a # comment at the top of the file)
 4.  **alpha0 and alpha1:** estimated posterior mean of the global intercept for each model
-5.  **beta0\_0, beta0\_1..., beta1\_0, beta1\_0:** estimated posterior means of the regression coefficients of the model-independent covariate matrix M under each model
+5.  **beta0\_0, beta0\_1..., beta1\_0, beta1\_1...:** estimated posterior means of the regression coefficients of the model-independent covariate matrix M under each model
 6.  **eta0\_0, eta0\_1..., eta1\_0, eta1\_1...:** estimated posterior means of the regression coefficients of the model-dependent matrix P under each model
 7.  **mu\_sample1, mu\_sample2,... sd\_sample1, sd\_sample2,...:** the data, i.e. the posterior means and standard deviations used as the outcomes
 

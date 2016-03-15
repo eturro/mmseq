@@ -122,7 +122,7 @@ readmmseq <- function( mmseq_files = grep("gene|identical", dir( pattern="\\.mms
 	
   if(normalize && ncol(mu)>1) {
     cat("Normalizing expression estimates with log factors:\n")
-    if(!is.null(uhfrac)) {
+    if(is.null(uhfrac)) {
       minfrac = max(0.2, (ncol(mu) - floor(ncol(mu)^2/160))/ncol(mu))
     } else {
       minfrac=uhfrac
@@ -183,6 +183,46 @@ polyclass <- function(files, prior=NULL) {
   res <- res[,-w]
   res <- cbind(res,postm)
   return(res)
+}
+
+
+is.expressed <- function(hits_file, transcript_mmseq_file, unique_hits_thres=1) {
+
+  if(system("hitstools", intern=FALSE, ignore.stderr=TRUE)>1) { 
+    stop("Please make sure the hitstools tool is in your path")
+  }
+
+  gi=system(paste("hitstools header ", hits_file,  " | grep GeneIsoforms"), intern=TRUE)
+  gi.l <- lapply(gi, function(x) { 
+    sp=strsplit(x,"\t")[[1]]
+    spl=sp[3:length(sp)]
+    return(spl)
+  })
+  names(gi.l) <- sapply(gi, function(x) { strsplit(x,"\t")[[1]][2] })
+
+  ig.l <- as.list(unlist(lapply(gi, function(x) { 
+    sp=strsplit(x,"\t")[[1]]
+    spl=rep(sp[2], times=length(sp)-2)
+    names(spl)= sp[3:length(sp)]
+    return(spl)
+  })))
+
+  tf=read.table(transcript_mmseq_file,header=1)
+  log_mu_thres=min(tf$log_mu[tf$unique_hits>=unique_hits_thres])
+
+  res.t=cbind(sapply(tf$feature_id,as.character),as.numeric(tf$log_mu>log_mu_thres))
+
+  res=data.frame(gene=unlist(ig.l[match(res.t[,1],names(ig.l))]), transcript=res.t[,1], expressed=res.t[,2])
+
+  res.spl=split(res,res$gene)
+
+  res.g=lapply(res.spl, function(x) { 
+    any(x$expressed==1)
+  })
+  
+  return(list(transcript=cbind(sapply(res$transcript,as.character),sapply(res$expressed,as.character)), 
+              gene=cbind(names(res.g), as.numeric(unlist(res.g)))))
+
 }
 
 

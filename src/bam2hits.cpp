@@ -666,7 +666,6 @@ int main(int argc, char *argv[]) {
     ofs << flush;
 
     cerr << "Calculating 'mseq' coefficients...\n";
-    char *binpath = strdup(argv[0]);
     char cf[L_tmpnam+1];
     if(tmpnam (cf) == NULL) {
       cerr << "Could not create temporary file name.\n";
