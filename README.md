@@ -121,7 +121,13 @@ These steps operate on a sample-by-sample basis and the expression estimates are
 
 #### Flexible model comparison using MMDIFF
 
-The `mmdiff` binary performs model comparison using the posterior summaries (`log_mu` and `sd` or `mean_probit_proportion` and `sd_probit_proportion`) saved in the MMSEQ tables. The two models can be specified in a matrices file using the `-m` option. Alternatively, for simple differential expression (a model specifying two or more conditions vs. a model specifying a single condition), the `-de` convenience option may be used instead of `-m`. E.g. for a simple 2 vs. 2 gene-level comparison, run:
+The `mmdiff` binary performs model comparison using the posterior summaries (`log_mu` and `sd` or `mean_probit_proportion` and `sd_probit_proportion`) saved in the MMSEQ tables. The models, indexed by _m_, are given by
+
+![mmdiff model](https://raw.github.com/eturro/mmseq/master/doc/mmdiff-model.png)
+
+where _y_ is the response (log expression or probit proportion parameter (see below)), **M** is a model-independent nuisance covariate, **P** is a model-dependent covariate, $$\nu$$ is a random effect capturing the posterior uncertainty in the response and $$\epsilon$$ is the residual.
+
+Two models can be specified in a matrices file using the `-m` option (see below). Alternatively, for standard differential expression analysis (comparison of a model specifying two or more conditions with a model specifying a single condition), the `-de` convenience option may be used instead of `-m`. E.g. for a simple 2 vs. 2 gene-level comparison, run:
 
     mmdiff -de 2 2 cond1rep1.gene.mmseq cond1rep2.gene.mmseq cond2rep1.gene.mmseq cond2rep2.gene.mmseq > out.mmdiff
 
