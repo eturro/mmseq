@@ -125,7 +125,7 @@ The `mmdiff` binary performs model comparison using the posterior summaries (`lo
 
 ![mmdiff model](https://raw.github.com/eturro/mmseq/master/doc/mmdiff-model.png)
 
-where _y_ is the response (log expression or probit proportion parameter (see below)), **M** is a model-independent nuisance covariate, **P** is a model-dependent covariate, $$\nu$$ is a random effect capturing the posterior uncertainty in the response and $$\epsilon$$ is the residual.
+where _y_ is the response (log expression or probit proportion parameter (see below)), **M** is a model-independent nuisance covariate, **P** is a model-dependent covariate, "nu" is a random effect capturing the posterior uncertainty in the response and "epsilon" is the residual.
 
 Two models can be specified in a matrices file using the `-m` option (see below). Alternatively, for standard differential expression analysis (comparison of a model specifying two or more conditions with a model specifying a single condition), the `-de` convenience option may be used instead of `-m`. E.g. for a simple 2 vs. 2 gene-level comparison, run:
 
