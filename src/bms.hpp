@@ -135,7 +135,7 @@ class BMS {
   vector<bool> Pnil;
   bool fixalpha;
 
-  static constexpr double g=2.0;
+  static const double g=2.0;
   gsl_rng ** rg;
   int max_threads;
 

@@ -1,5 +1,7 @@
 # for static compilation: STATIC=1 make
 # for debug: make DEBUG=1
+# dynamic linking requires module load gcc/4.9.2 samtools gsl atlas lapack armadillo
+# static linking requires module load gcc/4.9.2 samtools gsl atlas lapack armadillo zlib boost
 
 SUFFIX = # set on command line for static compilation
 MACROS = -DVERSION=$(shell echo `cat VERSION`)
@@ -11,10 +13,11 @@ BINDIR=../bin
 
 CC = gcc
 CXX = g++
-LIBS = -lgsl -lgslcblas -lboost_regex -lbam -lboost_iostreams -lz -llapack -lblas -lgfortran
+LIBS = -lgsl -lgslcblas -lboost_regex -lhts -lboost_iostreams -lz -llapack -lblas -lgfortran  
 OMP = -fopenmp
 OPT = -O3
 OPTSAFE = -O2
+#CXXFLAGS = -std=c++11
 
 ifeq ($(shell echo `uname -s`),Darwin)
 #  CLEANSUFFIX = $(shell echo `cat VERSION`-`uname -s`-`ar -x /opt/local/lib/libgsl.a rng.o && file rng.o | sed -E 's/.*\ (.*)/\1/'`)
@@ -25,7 +28,7 @@ ifeq ($(shell echo `uname -s`),Linux)
 endif
 ifdef STATIC
   CC += -static-libgcc 
-  CXX += -static-libgcc
+  CXX += -static-libgcc 
   SUFFIX = ${CLEANSUFFIX}
   ifeq ($(shell echo `uname -s`),Darwin)
     $(warning "Static compilation for Mac OS X")
@@ -36,11 +39,8 @@ ifdef STATIC
   ifeq ($(shell echo `uname -s`),Linux)
     $(warning "Static compilation for Linux")
     CXXFLAGS += -static -Wl,--whole-archive -lpthread -Wl,--no-whole-archive
-		LIBS += -lcblas -latlas
+		LIBS += -lquadmath
   endif
-endif
-ifndef STATIC
-  LIBS += -larmadillo
 endif
   
 

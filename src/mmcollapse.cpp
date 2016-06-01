@@ -211,8 +211,8 @@ void get_unidentifiable_transcripts(const string filename,
     for(int i=0; i < tokens2.size(); i++) isIdent[tokens2[i]]=1;
     if(retallfeatures) all_features.push_back(tokens[ic]);
     if(tokens[ob]=="0") {
-      sd.push_back(math::inf());
-      iact.push_back(math::inf());
+      sd.push_back(datum::inf);
+      iact.push_back(datum::inf);
       zeros.push_back(tokens[ic]);
       zeros_feature2iact[filename][tokens[ic]]=atof(tokens[ac].c_str());
       zeros_feature2sd[filename][tokens[ic]]=atof(tokens[si].c_str());
@@ -314,8 +314,8 @@ void get_unidentifiable_transcripts(const string filename,
     if(tokens[uc]=="0" && isIdent.count(tokens[ic])==0) {
       candidates.push_back(tokens[ic]);
       if(tokens[ob]=="0") {
-        sd.push_back(math::inf());
-        iact.push_back(math::inf());
+        sd.push_back(datum::inf);
+        iact.push_back(datum::inf);
         zeros.push_back(tokens[ic]);
         zeros_feature2iact[filename][tokens[ic]]=atof(tokens[ac].c_str());
         zeros_feature2sd[filename][tokens[ic]]=atof(tokens[si].c_str());
@@ -413,8 +413,8 @@ void collapse(cube &R, vector<string> & candidates, map<string, int> & cand2ind,
       //R.slice(s).col(indexes[j]) = R.slice(s).col(indexes[0]);
       //R.slice(s).row(indexes[j]) = R.slice(s).row(indexes[0]);
       for(int i=0; i < R.n_cols; i++) {
-        R(indexes[j],i,s)=math::nan();
-        R(i,indexes[j],s)=math::nan();
+        R(indexes[j],i,s)=datum::nan;
+        R(i,indexes[j],s)=datum::nan;
       }
     }
   }
@@ -541,7 +541,7 @@ void get_corrs(cube &R, mat &M, const vector<string> & basenames, map<string, in
         for(int t=0; t < tokens.size(); t++) {
           gifs >> str;
           if(cand2ind.count(tokens[t]) > 0 ) {
-            if(str=="NA") myM(i,cand2ind[tokens[t]])=math::nan();
+            if(str=="NA") myM(i,cand2ind[tokens[t]])=datum::nan;
             myM(i,cand2ind[tokens[t]])=atof(str.c_str());
           }
         }

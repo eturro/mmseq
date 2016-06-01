@@ -29,6 +29,7 @@
 #include <vector>
 #include <cstdlib>
 #include <algorithm>
+#define ARMA_DONT_USE_WRAPPER
 #include <armadillo>
 #include <gsl/gsl_randist.h>
 #include <gsl/gsl_rng.h>
@@ -184,7 +185,7 @@ void parse_mmseq(vector<string> filenames, vector<string> & features, Mat<double
     vector<string> newfeatures=features;
 
     for(int i=y.n_rows-1; i >= 0; i--) {
-      if(isinf(y(i,0))) {
+      if(std::isinf(y(i,0))) {
         newy.shed_row(i);
         newe.shed_row(i);
         newuh.shed_row(i);
