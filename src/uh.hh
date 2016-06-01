@@ -1,7 +1,14 @@
 #ifndef _UH_H
 #define _UH_H
 
-#include <omp.h>
+#ifdef _OPENMP
+  #include <omp.h>
+  #define OMP_GET_MAX_THREADS omp_get_max_threads()
+  #define OMP_GET_THREAD_NUM omp_get_thread_num()
+#else
+  #define OMP_GET_MAX_THREADS 1
+  #define OMP_GET_THREAD_NUM 0
+#endif // _OPENMP
 #include <vector>
 #include <boost/numeric/ublas/matrix_sparse.hpp>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
