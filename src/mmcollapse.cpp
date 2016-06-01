@@ -527,7 +527,7 @@ void get_corrs(cube &R, mat &M, const vector<string> & basenames, map<string, in
     #pragma omp critical
     {
     for(vector<string>::iterator strit=sources.begin(); strit < sources.end(); strit++) {
-      cerr << "\t" << basenames[s] << *strit << "trace_gibbs.gz (thread " << omp_get_thread_num() << ")" << endl;
+      cerr << "\t" << basenames[s] << *strit << "trace_gibbs.gz (thread " << OMP_GET_THREAD_NUM << ")" << endl;
       ifs.open((basenames[s] + *strit + "trace_gibbs.gz").c_str(), ios_base::in | ios_base::binary);
       gifs.push(ifs);
       if(!ifs.good()) {
@@ -604,7 +604,9 @@ int main(int argc, char **argv) {
     exit(1);
   }
 
+#ifdef _OPENMP
   omp_set_num_threads(min(OMP_GET_MAX_THREADS, (int)basenames.size()));
+#endif
 
   cerr << "Stopping threshold: -" << stoppingthreshold*100 << "th percentile of the distribution of correlations\n";
 
