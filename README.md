@@ -45,7 +45,7 @@ You might want to strip the suffix from the binaries. E.g., under Linux:
       mv $f `basename $f -linux`
     done
 
-The current release is 1.0.8 ([changelog](https://github.com/eturro/mmseq/tree/master/src#changelog)). Visit the [release archive](https://github.com/eturro/mmseq/tags) to download older releases.
+The current release is 1.0.9 ([changelog](https://github.com/eturro/mmseq/tree/master/src#changelog)). Visit the [release archive](https://github.com/eturro/mmseq/tags) to download older releases.
 
 ## Estimating expression levels
 
@@ -323,11 +323,11 @@ If you are unsure what regular expression to use, try out by trial and error usi
 
 ## Building from source 
 
-The [MMSEQ package](#installation) comes with semi-statically-linked binaries for 64-bit Mac OS X and GNU/Linux, which should work out of the box on most systems. However, if you get an `Illegal instruction (core dumped)` error, it is likely that you need to re-compile the binaries on your system to get them to work. In order to build from source, install the following dependencies ([more info](https://github.com/eturro/mmseq/blob/master/src/dependencies.md)):
+The [MMSEQ package](#installation) comes with statically-linked binaries for 64-bit Mac OS X and GNU/Linux, which should work out of the box on most systems. However, due to a lack of OpenMP support on Apple's clang compiler (as of El Capitan), the Mac binaries are single-threaded. In order to build from source, install the following dependencies ([more info](https://github.com/eturro/mmseq/blob/master/src/dependencies.md)):
 
 - [Boost C++ libraries](http://boost.org/)
 - [GNU Scientific Library](http://www.gnu.org/software/gsl)
-- [Armadillo C++ linear algebra library](http://arma.sf.net)
+- [Armadillo C++ linear algebra library](http://arma.sf.net) (with [lapack](http://www.netlib.org/lapack) and [blas](http://www.netlib.org/blas))
 - [SAMtools library](http://samtools.sourceforge.net/)
 
 Then clone the GitHub repository and run `make` from the `src` directory, which will place the binaries in the `bin` directory:
