@@ -13,7 +13,7 @@ BINDIR=../bin
 
 CC = gcc
 CXX = g++
-LIBS = -lgsl -lgslcblas -lboost_regex -lhts -lboost_iostreams -lz -llapack -lblas -lgfortran  
+LIBS = -lgsl -lgslcblas -lboost_regex -lhts -lboost_iostreams -lz -llapack -lblas
 OMP = -fopenmp
 OPT = -O3
 OPTSAFE = -O2
@@ -22,22 +22,25 @@ OPTSAFE = -O2
 ifeq ($(shell echo `uname -s`),Darwin)
 #  CLEANSUFFIX = $(shell echo `cat VERSION`-`uname -s`-`ar -x /opt/local/lib/libgsl.a rng.o && file rng.o | sed -E 's/.*\ (.*)/\1/'`)
    CLEANSUFFIX = -mac # $(shell echo -`cat VERSION`-`uname -s`-`uname -m`)
+   OMP = 
 endif
 ifeq ($(shell echo `uname -s`),Linux)
   CLEANSUFFIX = -linux # $(shell echo -`cat VERSION`-`uname -s`-`uname -m`)
+  LIBS += -lgfortran
 endif
 ifdef STATIC
-  CC += -static-libgcc 
-  CXX += -static-libgcc 
   SUFFIX = ${CLEANSUFFIX}
   ifeq ($(shell echo `uname -s`),Darwin)
     $(warning "Static compilation for Mac OS X")
-# comment out #define ARMA_USE_WRAPPER in /usr/local/include/armadillo_bits/config.hpp
-    CXXFLAGS += -framework Accelerate -mmacosx-version-min=10.6
-    LIBS = /usr/local/lib/libgsl.a /usr/local/lib/libgslcblas.a /usr/local/lib/libboost_iostreams.a -lz /usr/local/lib/libboost_regex-mt.a /usr/local/lib/libbam.a 
+    CC += -stdlib=libc++
+    CXX += -stdlib=libc++ 
+    CXXFLAGS += -framework Accelerate -mmacosx-version-min=10.7
+    LIBS = /usr/local/lib/libgsl.a /usr/local/lib/libgslcblas.a /usr/local/lib/libboost_iostreams.a -lz /usr/local/lib/libboost_regex-mt.a /usr/local/lib/libhts.a 
   endif
   ifeq ($(shell echo `uname -s`),Linux)
     $(warning "Static compilation for Linux")
+    CC += -static-libgcc 
+    CXX += -static-libgcc 
     CXXFLAGS += -static -Wl,--whole-archive -lpthread -Wl,--no-whole-archive
 		LIBS += -lquadmath
   endif
