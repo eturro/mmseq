@@ -31,6 +31,7 @@
 #include <vector>
 #include <cstdlib>
 #include <algorithm>
+#define ARMA_DONT_USE_WRAPPER
 #include <armadillo>
 #include <gsl/gsl_randist.h>
 #include <gsl/gsl_rng.h>

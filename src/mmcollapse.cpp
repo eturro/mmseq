@@ -25,6 +25,7 @@
 #include <vector>
 #include <cstdlib>
 #include <algorithm>
+#define ARMA_DONT_USE_WRAPPER
 #include <armadillo>
 #include "sokal.hh"
 #include <boost/numeric/ublas/matrix_sparse.hpp>
