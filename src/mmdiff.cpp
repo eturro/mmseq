@@ -873,7 +873,7 @@ int main(int argc, char** argv) {
   cerr << "tgamma "  << tgamma/1000000.0 << endl;
 #endif
 
-  double postodds, BF;
+  double postlogodds, BF;
   cout << "#prior_probability=" << p << endl;
   cout << "feature_id\tbayes_factor\tposterior_probability\t";
 
@@ -911,9 +911,9 @@ int main(int argc, char** argv) {
 
 
   for(int feature=0; feature < features.size(); feature++) {
-    BF = mcmc.gammamean(feature)/(1.0-mcmc.gammamean(feature)) * (1.0-mcmc.getp(feature))/mcmc.getp(feature);
-    postodds = BF * p/(1.0-p);
-    double pp = postodds/(1.0+postodds);
+    BF = mcmc.gammamean(feature, true)/(1.0-mcmc.gammamean(feature, true)) * (1.0-mcmc.getp(feature))/mcmc.getp(feature);
+    postlogodds = log(BF) + log(p) -log1p(-p);
+    double pp = 1.0/(1.0+exp(-postlogodds));
     if(BF >= DBL_MAX) pp=1.0;
     cout << features[feature] << "\t" << BF << "\t" << pp << "\t";
     for(int model=0; model < 2; model++) {
