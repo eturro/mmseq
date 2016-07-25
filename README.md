@@ -45,7 +45,7 @@ You might want to strip the suffix from the binaries. E.g., under Linux:
       mv $f `basename $f -linux`
     done
 
-The current release is 1.0.8 ([changelog](https://github.com/eturro/mmseq/tree/master/src#changelog)). Visit the [release archive](https://github.com/eturro/mmseq/tags) to download older releases.
+The current release is 1.0.9 ([changelog](https://github.com/eturro/mmseq/tree/master/src#changelog)). Visit the [release archive](https://github.com/eturro/mmseq/tags) to download older releases.
 
 ## Estimating expression levels
 
@@ -272,6 +272,10 @@ Description of the output:
 6.  **eta0\_0, eta0\_1..., eta1\_0, eta1\_1...:** estimated posterior means of the regression coefficients of the model-dependent matrix P under each model
 7.  **mu\_sample1, mu\_sample2,... sd\_sample1, sd\_sample2,...:** the data, i.e. the posterior means and standard deviations used as the outcomes
 
+To recompute the posterior probability based on a different prior probability without having to re-run `mmdiff`, you can use the following function in `R`, where `bf` is the Bayes factor and `prior` is the new desired prior probability:
+
+    recompute_pp <- function(bf, prior) {  1/(1 + exp( -( log(bf) + log(prior) - log(1-prior) ))) }
+
 To perform polytomous model selection (i.e., compare multiple models), run `mmdiff` multiple times, comparing each alternative model to some baseline model. Then, in R, source the `mmseq.R` file in the `src/R` directory and feed the mmdiff output files to the `polyclass()` function. A vector of prior probabilities for each model can be specified in the `prior` argument (assumed flat by default). The function returns a data frame containing the posterior probability of each model for each feature (`postprob_model0`, `postprob_model1`, etc.).
 
 For an alternative approach to differential expression analysis using [edgeR](http://dx.doi.org/10.1186/gb-2010-11-3-r25) or [DESeq](http://dx.doi.org/10.1186/gb-2010-11-10-r106), [view these instructions](https://github.com/eturro/mmseq/blob/master/doc/countsDE.md).
@@ -287,7 +291,7 @@ Here, `basename1 basename2...` corresponds to the name of the `mmseq` output fil
 #### Ready to download:
 
 - ***Homo sapiens:*** download transcriptome FASTA files containing cDNA and ncRNA transcript sequences (but excluding alternative haplotype/supercontig entries) for the following versions of Ensembl: [64](http://haemgen.haem.cam.ac.uk/eturro/hs_transcripts/Homo_sapiens.GRCh37.64.ref_transcripts.fa.gz), [68](http://haemgen.haem.cam.ac.uk/eturro/hs_transcripts/Homo_sapiens.GRCh37.68.ref_transcripts.fa.gz), [70](http://haemgen.haem.cam.ac.uk/eturro/hs_transcripts/Homo_sapiens.GRCh37.70.ref_transcripts.fa.gz).
-- ***Mus musculus:*** genome and transcriptome FASTA files based on the GRCm38 build and the [March 2013 SNP and indel calls](ftp://ftp-mouse.sanger.ac.uk/REL-1303-SNPs_Indels-GRCm38/) from the [Wellcome Trust Mouse Genomes Project](http://www.sanger.ac.uk/resources/mouse/genomes/) are [available here](http://haemgen.haem.cam.ac.uk/eturro/REL-1303-SNPs_Indels-GRCm38/) for the following strains: C57BL6, 129P2, 129S1, 129S5, AJ, AKRJ, BALBcJ, C3HHeJ, C57BL6NJ, CASTEiJ, CBAJ, DBA2J, FVBNJ, LPJ, NODShiLtJ, NZOHlLtJ, PWKPhJ, SPRETEiJ and WSBEiJ. These files were generated using the [mouse\_strain\_transcriptomes.sh](https://github.com/eturro/mmseq/blob/master/bin/mouse_strain_transcriptome.sh) script. Please [cite](#citing-mmseq) the papers if you publish work using these files. For F1 data, append "\_STRAIN" to each transcript and gene ID in the transcriptome FASTA headers (where "STRAIN" is the name of the strain) and concatenate the two relevant files into one hybrid FASTA. Then align the F1 reads to the hybrid reference as per the documentation above. For analysis with `mmdiff`, the `*.mmseq` files should be split into two, one file for each strain (use `head` to extract the headers and `grep STRAIN` to extract the rows for a particular strain).
+- ***Mus musculus:*** genome and transcriptome FASTA files based on the GRCm38 build and the [March 2013 SNP and indel calls](ftp://ftp-mouse.sanger.ac.uk/REL-1303-SNPs_Indels-GRCm38/) from the [Wellcome Trust Mouse Genomes Project](http://www.sanger.ac.uk/resources/mouse/genomes/) are [available here](http://www.bgx.org.uk/data/REL-1303-SNPs_Indels-GRCm38/) for the following strains: C57BL6, 129P2, 129S1, 129S5, AJ, AKRJ, BALBcJ, C3HHeJ, C57BL6NJ, CASTEiJ, CBAJ, DBA2J, FVBNJ, LPJ, NODShiLtJ, NZOHlLtJ, PWKPhJ, SPRETEiJ and WSBEiJ. These files were generated using the [mouse\_strain\_transcriptomes.sh](https://github.com/eturro/mmseq/blob/master/bin/mouse_strain_transcriptome.sh) script. Please [cite](#citing-mmseq) the papers if you publish work using these files. For F1 data, append "\_STRAIN" to each transcript and gene ID in the transcriptome FASTA headers (where "STRAIN" is the name of the strain) and concatenate the two relevant files into one hybrid FASTA. Then align the F1 reads to the hybrid reference as per the documentation above. For analysis with `mmdiff`, the `*.mmseq` files should be split into two, one file for each strain (use `head` to extract the headers and `grep STRAIN` to extract the rows for a particular strain).
 
 #### Making your own Ensembl vertebrate reference FASTAs:
 
@@ -323,11 +327,11 @@ If you are unsure what regular expression to use, try out by trial and error usi
 
 ## Building from source 
 
-The [MMSEQ package](#installation) comes with semi-statically-linked binaries for 64-bit Mac OS X and GNU/Linux, which should work out of the box on most systems. However, if you get an `Illegal instruction (core dumped)` error, it is likely that you need to re-compile the binaries on your system to get them to work. In order to build from source, install the following dependencies ([more info](https://github.com/eturro/mmseq/blob/master/src/dependencies.md)):
+The [MMSEQ package](#installation) comes with statically-linked binaries for 64-bit Mac OS X and GNU/Linux, which should work out of the box on most systems. However, due to a lack of OpenMP support on Apple's clang compiler (as of El Capitan), the Mac binaries are single-threaded. In order to build from source, install the following dependencies ([more info](https://github.com/eturro/mmseq/blob/master/src/dependencies.md)):
 
 - [Boost C++ libraries](http://boost.org/)
 - [GNU Scientific Library](http://www.gnu.org/software/gsl)
-- [Armadillo C++ linear algebra library](http://arma.sf.net)
+- [Armadillo C++ linear algebra library](http://arma.sf.net) (with [lapack](http://www.netlib.org/lapack) and [blas](http://www.netlib.org/blas))
 - [SAMtools library](http://samtools.sourceforge.net/)
 
 Then clone the GitHub repository and run `make` from the `src` directory, which will place the binaries in the `bin` directory:

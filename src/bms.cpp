@@ -27,7 +27,6 @@ double log_inv_gamma_pdf( double x, double shape, double scale) {
   return(-gsl_sf_lngamma(shape) + shape*log(scale) + (-shape-1.0) * log(x) -scale/x);
 }
 
-
 double inv_gamma_pdf( double x, double shape, double scale) {
   return(1.0/gsl_sf_gamma(shape)*pow(scale, shape)*pow(x,-shape-1.0) *exp(-scale/x));
 }
@@ -661,32 +660,22 @@ void BMS::update_eta(int feature, int model, bool fit) {
   if(Pnil[model]) return;
   if(fit || gamma(feature)==model) {
     Mb[OMP_GET_THREAD_NUM]=M*beta[model].col(feature);
-    Peta[OMP_GET_THREAD_NUM]=P[model]*eta[model].col(feature);
-    Col<double> V(P[model].n_cols);
-    V.fill(0.0);
-
     for(int l=0; l < P[model].n_cols; l++) {
-      V(l) = 1.0/lambda[model](feature,l);
+      Peta[OMP_GET_THREAD_NUM]=P[model]*eta[model].col(feature);
+      double V=1.0/lambda[model](feature,l);
       for(int i=0; i < y->n_cols; i++) {
-        V(l) += P[model](i,l)*P[model](i,l)/(esq(feature,i) + sigmasq[model](C(i,model), feature));
+        V += P[model](i,l)*P[model](i,l)/(esq(feature,i) + sigmasq[model](C(i,model), feature));
       }
-    }
-    for(int l=0; l < P[model].n_cols; l++) {
-      V(l) = 1.0/V(l);
-    }
-    Col<double> sum(P[model].n_cols);
-    sum.fill(0.0);
-    Col<double>  Pev;
-    for(int l=0; l < P[model].n_cols; l++) {
+      V = 1.0/V;
+      double sum=0.0;
+      Col<double>  Pev;
       Pev = Peta[OMP_GET_THREAD_NUM] - P[model].col(l)*eta[model](l, feature);
       for(int i=0; i < y->n_cols; i++) {
-        sum(l) += P[model](i,l) * ((*y)(feature,i) - Mb[OMP_GET_THREAD_NUM](i)
+        sum += P[model](i,l) * ((*y)(feature,i) - Mb[OMP_GET_THREAD_NUM](i)
                 - alpha[model](feature) - Pev(i) )/
                   (esq(feature,i) + sigmasq[model](C(i,model), feature));
       }
-    }
-    for(int l=0; l < P[model].n_cols; l++) {
-      eta[model](l, feature) = gsl_ran_gaussian(rg[OMP_GET_THREAD_NUM], sqrt(V(l))) + V(l) * sum(l);
+      eta[model](l, feature) = gsl_ran_gaussian(rg[OMP_GET_THREAD_NUM], sqrt(V)) + V * sum;
     }
   } else {
     for(int l=0; l < P[model].n_cols; l++) {
