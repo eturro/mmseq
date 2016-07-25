@@ -272,6 +272,10 @@ Description of the output:
 6.  **eta0\_0, eta0\_1..., eta1\_0, eta1\_1...:** estimated posterior means of the regression coefficients of the model-dependent matrix P under each model
 7.  **mu\_sample1, mu\_sample2,... sd\_sample1, sd\_sample2,...:** the data, i.e. the posterior means and standard deviations used as the outcomes
 
+To recompute the posterior probability based on a different prior probability without having to re-run `mmdiff`, you can use the following function in `R`, where `bf` is the Bayes factor and `prior` is the new desired prior probability:
+
+    recompute_pp <- function(bf, prior) {  1/(1 + exp( -( log(bf) + log(prior) - log(1-prior) ))) }
+
 To perform polytomous model selection (i.e., compare multiple models), run `mmdiff` multiple times, comparing each alternative model to some baseline model. Then, in R, source the `mmseq.R` file in the `src/R` directory and feed the mmdiff output files to the `polyclass()` function. A vector of prior probabilities for each model can be specified in the `prior` argument (assumed flat by default). The function returns a data frame containing the posterior probability of each model for each feature (`postprob_model0`, `postprob_model1`, etc.).
 
 For an alternative approach to differential expression analysis using [edgeR](http://dx.doi.org/10.1186/gb-2010-11-3-r25) or [DESeq](http://dx.doi.org/10.1186/gb-2010-11-10-r106), [view these instructions](https://github.com/eturro/mmseq/blob/master/doc/countsDE.md).
