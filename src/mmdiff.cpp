@@ -289,7 +289,7 @@ void parse_matrices(string file, Mat<double> & M, Mat<double> & P0, Mat<double> 
       }
       str=str.substr(0, str.find_first_of("#"));
       tokens.clear();
-      tokenise(str, tokens, " ");
+      tokenise(str, tokens, " \t");
       if(tokens.size() < 1) spacer=true;
     } while(!ifs.eof() && tokens.size() < 1);
     if(str.size()==0 && ifs.eof()) break;
