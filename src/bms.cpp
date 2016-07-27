@@ -1008,15 +1008,10 @@ void BMS::update_gamma(int feature) {
   }
 }
 
-double BMS::gammamean(int feature, bool safe) {
+double BMS::gammamean(int feature) {
   double res=gammasum(feature)/(double)runlen;
-  double res0=res;
-  if(safe) {
-    res=min(res,((double)runlen-0.5)/(double)runlen);
-    res=max(res,0.5/(double)runlen);
-  }
-  if(res0!=res) { 
-    cerr << "Warning: gamma did not mix for feature " << feature << endl;
+  if(gammasum(feature)==0 || gammasum(feature)==runlen) { 
+    cerr << "Warning: gamma did not mix for feature " << feature << "; stuck in model " << (int)gammasum(feature)/runlen << endl;
   }
   return(res);
 }

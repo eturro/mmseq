@@ -912,7 +912,8 @@ int main(int argc, char** argv) {
 
 
   for(int feature=0; feature < features.size(); feature++) {
-    BF = mcmc.gammamean(feature, true)/(1.0-mcmc.gammamean(feature, true)) * (1.0-mcmc.getp(feature))/mcmc.getp(feature);
+    double gm=mcmc.gammamean(feature);
+    BF = gm/(1.0-gm) * (1.0-mcmc.getp(feature))/mcmc.getp(feature);
     postlogodds = log(BF) + log(p) -log1p(-p);
     double pp = 1.0/(1.0+exp(-postlogodds));
     if(BF >= DBL_MAX) pp=1.0;

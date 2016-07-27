@@ -214,7 +214,7 @@ class BMS {
   double log_target_posterior(int feature, int model);
   double log_target_pseudo(int feature, int model);
 
-  double gammamean(int feature, bool safe=false);
+  double gammamean(int feature);
   double alphamean(int model, int feature);
   double betamean(int model, int cov, int feature);
   double etamean(int model, int cov, int feature);
