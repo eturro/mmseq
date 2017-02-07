@@ -1061,7 +1061,7 @@ int main(int argc, char *argv[]) {
     if(mergeHaps) {
       str = stripHapSuffix(str);
     }
-    Alignment aln(currentRead, str, abs(line->core.isize), bam_aux2i(bam_aux_get(line,"NM")), line->core.pos, line->core.mpos);
+    Alignment aln(currentRead, str, abs(line->core.isize), bam_aux_get(line,"NM") == NULL ? 0 : bam_aux2i(bam_aux_get(line,"NM")), line->core.pos, line->core.mpos);
     currentTranscripts.push_back(aln);
 
     if(bam_read1(bamIn, line)<1) {
@@ -1085,7 +1085,7 @@ int main(int argc, char *argv[]) {
           }
           if(ait->transcript() == str &&           
             ait->pos() == line->core.mpos && ait->mpos() == line->core.pos) {
-            ait->NM(ait->NM() + bam_aux2i(bam_aux_get(line,"NM")));
+            ait->NM(ait->NM() + bam_aux_get(line,"NM") == NULL ? 0 : bam_aux2i(bam_aux_get(line,"NM")));
             foundMate=true;
             break;
           }
@@ -1098,7 +1098,7 @@ int main(int argc, char *argv[]) {
         if(mergeHaps) {
           str = stripHapSuffix(str);
         }
-        Alignment aln(currentRead, str, abs(line->core.isize), bam_aux2i(bam_aux_get(line,"NM")), line->core.pos, line->core.mpos);
+        Alignment aln(currentRead, str, abs(line->core.isize), bam_aux_get(line,"NM") == NULL ? 0 : bam_aux2i(bam_aux_get(line,"NM")), line->core.pos, line->core.mpos);
         currentTranscripts.push_back(aln);
       }
 
