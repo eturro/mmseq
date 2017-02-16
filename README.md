@@ -61,7 +61,7 @@ The example commands below assume that the FASTQ files are `asample_1.fq` and `a
 
 (It is advisable to use a lower-than-default value for --offrate (such as 2 or 3) as long as the resulting index fits in memory.)
 
-### Step 1b: Index the reference transcript sequences with kallisto (this is an alternative to Step 1a)
+#### Step 1b: Index the reference transcript sequences with kallisto (this is an alternative to Step 1a)
 
     kallisto index -i Homo_sapiens.GRCh37.70.ref_transcripts.kind Homo_sapiens.GRCh37.70.ref_transcripts.fa
 
