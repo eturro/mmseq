@@ -61,7 +61,7 @@ The example commands below assume that the FASTQ files are `asample_1.fq` and `a
 
 (It is advisable to use a lower-than-default value for --offrate (such as 2 or 3) as long as the resulting index fits in memory.)
 
-### Step 1b: Index the reference transcript sequences with kallisto
+### Step 1b: Index the reference transcript sequences with kallisto (this is an alternative to Step 1a)
 
     kallisto index -i Homo_sapiens.GRCh37.70.ref_transcripts.kind Homo_sapiens.GRCh37.70.ref_transcripts.fa
 
@@ -89,7 +89,7 @@ If the insert size distribution overlaps the read length, trim back the reads to
 - The output BAM file must be sorted by read name.
 - With paired-end data, only pairs where both reads have been aligned are used, so might as well use the samtools `0xC` filtering flag as above to reduce the size of the BAM file
 
-#### Step 2b: Align reads with kallisto
+#### Step 2b: Align reads with kallisto (this is an alternative to Step 2a)
 
     kallisto pseudo -i Homo_sapiens.GRCh37.70.ref_transcripts.kind --pseudobam -o kout asample_1.fq.gz asample_2.fq.gz | \
       | samtools view -F 0xC -bS - | samtools sort -n - asample.namesorted
