@@ -8,6 +8,7 @@ Ernest Turro wrote all the code in this package except
   - `fasta.c`/`h`: Bio5495/BME537 Computational Molecular Biology, Michigan State University
 
 ## Changelog
+  - 2017-02-16: MMSEQ 1.0.10 released, bam2hits works with kallisto-generated bams
   - 2016-06-02: MMSEQ 1.0.9 released, various fixes and improvements; in particular, fixed bug in the MCMC update for eta in mmdiff which could result in an exception (this did not affect standard differential expression)
   - 2014-01-23: MMSEQ 1.0.8a released, new linux binaries (old ones linked to a dodgy version of boost) 
   - 2014-01-09: MMSEQ 1.0.8 released, mmcollapse bugfix (incorrect SDs sometimes output previously) 
