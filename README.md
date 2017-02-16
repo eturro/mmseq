@@ -45,7 +45,7 @@ You might want to strip the suffix from the binaries. E.g., under Linux:
       mv $f `basename $f -linux`
     done
 
-The current release is 1.0.9 ([changelog](https://github.com/eturro/mmseq/tree/master/src#changelog)). Visit the [release archive](https://github.com/eturro/mmseq/tags) to download older releases.
+The current release is 1.0.10 ([changelog](https://github.com/eturro/mmseq/tree/master/src#changelog)). Visit the [release archive](https://github.com/eturro/mmseq/tags) to download older releases.
 
 ## Estimating expression levels
 
@@ -55,18 +55,22 @@ The current release is 1.0.9 ([changelog](https://github.com/eturro/mmseq/tree/m
 
 The example commands below assume that the FASTQ files are `asample_1.fq` and `asample_2.fq` (paired-end) and the FASTA file is `Homo_sapiens.GRCh37.70.ref_transcripts.fa`.
 
-#### Step 1: Index the reference transcript sequences with Bowtie 1 (not Bowtie 2)
+#### Step 1a: Index the reference transcript sequences with Bowtie 1 (not Bowtie 2); to use kallisto instead, see Step 1b
 
     bowtie-build --offrate 3 Homo_sapiens.GRCh37.70.ref_transcripts.fa Homo_sapiens.GRCh37.70.ref_transcripts 
 
 (It is advisable to use a lower-than-default value for --offrate (such as 2 or 3) as long as the resulting index fits in memory.)
 
-#### Step 2a: Trim out adapter sequences if necessary
+### Step 1b: Index the reference transcript sequences with kallisto
+
+    kallisto index -i Homo_sapiens.GRCh37.70.ref_transcripts.kind Homo_sapiens.GRCh37.70.ref_transcripts.fa
+
+#### Step 1c (optional): Trim out adapter sequences if necessary
 If the insert size distribution overlaps the read length, trim back the reads to exclude adapter sequences. [Trim Galore!](http://www.bioinformatics.babraham.ac.uk/projects/trim_galore/) works well. E.g. for libraries prepared using standard Illumina adapters (`AGATCGGAAGAGC`), run:
 
     trim_galore -q 15 --stringency 3 -e 0.05 --length 36 --trim1 --paired asample_1.fq.gz asample_2.fq.gz
 
-#### Step 2b: Align reads with Bowtie 1 (not Bowtie 2)
+#### Step 2a: Align reads with Bowtie 1 (not Bowtie 2); to use kallisto instead, see Step 2b
 
     bowtie -a --best --strata -S -m 100 -X 500 --chunkmbs 256 -p 8 Homo_sapiens.GRCh37.70.ref_transcripts \
       -1 <(gzip -dc asample_1.fq.gz) -2 <(gzip -dc asample_2.fq.gz) | samtools view -F 0xC -bS - | \
@@ -84,6 +88,11 @@ If the insert size distribution overlaps the read length, trim back the reads to
 - If the read names contain spaces, make sure the substring up to the first space in each read is unique, as Bowtie strips anything after a space in a read name
 - The output BAM file must be sorted by read name.
 - With paired-end data, only pairs where both reads have been aligned are used, so might as well use the samtools `0xC` filtering flag as above to reduce the size of the BAM file
+
+#### Step 2b: Align reads with kallisto
+
+    kallisto pseudo -i Homo_sapiens.GRCh37.70.ref_transcripts.kind --pseudobam -o kout asample_1.fq.gz asample_2.fq.gz | \
+      | samtools view -F 0xC -bS - | samtools sort -n - asample.namesorted
 
 #### Step 3: Map reads to transcript sets
 
