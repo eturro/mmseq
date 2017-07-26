@@ -26,6 +26,7 @@
 #include <assert.h>
 #include <algorithm>
 #include <time.h>
+#include <boost/serialization/array_wrapper.hpp>
 #include <boost/numeric/ublas/matrix_sparse.hpp>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <boost/numeric/ublas/operation.hpp>

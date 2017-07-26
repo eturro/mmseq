@@ -10,6 +10,7 @@
   #define OMP_GET_THREAD_NUM 0
 #endif // _OPENMP
 #include <vector>
+#include <boost/serialization/array_wrapper.hpp>
 #include <boost/numeric/ublas/matrix_sparse.hpp>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <boost/numeric/ublas/operation.hpp>
