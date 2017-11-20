@@ -35,7 +35,8 @@ using namespace std;
 #define COMMENTCHAR '@'
 
 void printUsage(const char *bin, ostream& out) {
-  out << "Usage: t2g_hits hits_file > gene_hits_file" << endl
+  out << "Usage: t2g_hits <(hitstools t hits_file) > gene_hits_file" << endl
+      << "Convert a transcript-level hits file in text format into a gene-level hits file in text format" << endl
       << endl
       << "Mandatory arguments:"
       << endl

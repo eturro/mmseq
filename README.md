@@ -489,7 +489,8 @@ See [authors](https://github.com/eturro/mmseq/blob/master/src/README.md#authors)
 
 `t2g_hits`
 
-    Usage: t2g_hits hits_file > gene_hits_file
+    Usage: t2g_hits <(hitstools t hits_file) > gene_hits_file
+    Convert a transcript-level hits file in text format into a gene-level hits file in text format
 
     Mandatory arguments:
       hits_file          hits file generated with `bam2hits`
