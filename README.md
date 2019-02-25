@@ -334,6 +334,32 @@ If you are unsure what regular expression to use, try out by trial and error usi
 
 #### Making sample-specific transcript FASTAs through genotyping and phasing:
 
+If you have phased genotypes and wish to create a sample-specific transcript FASTA file, you can use the `haploref.rb` script. Suppose there was a two-exon transcript called `ENST123` on chromosome 1 with reference sequence `ATCGAATGA` spread across two exons at positions 1000-1003 and 1010-1014. Suppose a particular individual carried `G` and `T` on one haplotype and `C` and `G` on the other haplotype, at positions 1003 and 1011 of chromosome 1, respectively. This information should be encoded in four files, as follows:
+
+- A reference transcript FASTA (`transcriptome.fa`)
+    >ENST123 gene:ENSG123
+    ATCGAATGA
+    
+- An Ensembl-style GFF file (`annotations.gff`)
+    1 protein_coding  mRNA  1000  1014  . + . ID=ENST123;Name=ABCD
+    1 protein_coding  exon  1000  1003  . + . ID=ENST123.1;Name=ABCD;Parent=ENST123
+    1 protein_coding  exon  1010  1014  . + . ID=ENST123.2;Name=ABCD;Parent=ENST123
+
+- A position file (`pos_file`)
+    ENST123 1 1003 1011
+    
+- A haplotype file (`hap_file`)
+    ENST123_A GT
+    ENST123_B CG
+    
+The `haploref.rb` command can then be run to generate a sample-specific FASTA file as follows (redirect stdout to a file):
+
+    haploref.rb transcriptome.fa annotations.gff pos_file hap_file 2> /dev/null
+    >ENST123_A gene:ENSG123_A
+    ATCGATTGA
+    >ENST123_B gene:ENSG123_B
+    ATCCAGTGA
+
 ## Building from source 
 
 The [MMSEQ package](#installation) comes with statically-linked binaries for 64-bit Mac OS X and GNU/Linux, which should work out of the box on most systems. However, due to a lack of OpenMP support on Apple's clang compiler (as of El Capitan), the Mac binaries are single-threaded. In order to build from source, install the following dependencies ([more info](https://github.com/eturro/mmseq/blob/master/src/dependencies.md)):
