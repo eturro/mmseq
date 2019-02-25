@@ -91,27 +91,31 @@ gff = {}
 strand = {}
 File.open(GFF_FILENAME) do |f|
   s = []
-  begin
-    s = f.gets.split("\t") if s.empty? or s[2]=="gene"
-    if s[2] == "gene" then next end
-    if s[2] == "mRNA"
-      tid = s[8].sub(/.*ID=([^;]*);.*/, '\1').chomp
-      s = f.gets.split "\t"
-      strand[tid] = s[6]
-      positions = []
-      begin
-        positions << (s[3].to_i..s[4].to_i)
-        s = f.gets.split "\t"
-      end while !f.eof? and s[2] == "exon"
-      gff[tid] = positions.sort do |a,b| a.first <=> b.first end # store ranges in order
+  loop do
+    loop do
+      s = f.gets.split("\t")
+      break if s[2]=="mRNA" or f.eof
     end
-  end while !f.eof?
+    tid = s[8].sub(/.*ID=([^;]*);.*/, '\1').chomp
+    strand[tid] = s[6]
+    positions = []
+    loop do
+      break if f.eof
+      s = f.gets.split("\t")
+      if s[2]=="exon" then
+        positions << (s[3].to_i..s[4].to_i)
+      else
+        break
+      end
+    end
+    gff[tid] = positions.sort do |a,b| a.first <=> b.first end # store ranges in order
+    break if f.eof
+  end
 end
 $stderr.puts "done."
 
 f_pos = File.open(POS_FILENAME)
 f_hap = File.open(HAP_FILENAME)
-
 
 $stderr.print "Producing haplotype specific FASTA file..."
 
