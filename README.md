@@ -1,5 +1,7 @@
 # MMSEQ: Transcript and gene level expression analysis using multi-mapping RNA-seq reads
 
+[![Build Status](https://travis-ci.org/eturro/mmseq.svg?branch=master)](https://travis-ci.org/eturro/mmseq)
+
 ![mmseq collage](https://raw.github.com/eturro/mmseq/master/doc/mmseq-collage.png)
 
 ## What is MMSEQ?
