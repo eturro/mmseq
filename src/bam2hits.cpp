@@ -15,7 +15,7 @@
 **    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 */
 
-#include "sam.h"
+#include "htslib/sam.h"
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -317,7 +317,7 @@ vector<string> extractElements(const char *str, boost::regex re, vector<int> bac
   return(res);
 }
 
-void checkSortOrder(bam_header_t *bam_head, const char *sortorder, ostream &out) {
+void checkSortOrder(bam_hdr_t *bam_head, const char *sortorder, ostream &out) {
   boost::cmatch ma;
   if(boost::regex_match(bam_head->text, ma, boost::regex(".*^@HD.*SO:(.[^\n]*)\n.*") )) {
     if(string(ma[1].first, ma[1].second) != sortorder) {
@@ -541,13 +541,13 @@ int main(int argc, char *argv[]) {
   cerr << "done (" << fastas.size() << " transcripts).\n"; 
 
   // Check that all the SN names in the header are also in the FASTA
-  bamFile bamIn;
-  if ((bamIn = bam_open(bf, "r")) == 0) {  
+  samFile *bamIn;
+  if ((bamIn = sam_open(bf, "r")) == 0) {
     fprintf(stderr, "Failed to open BAM file %s\n", bf);
     exit(1);  
   }
 
-  bam_header_t *bam_head = bam_header_read(bamIn);
+  bam_hdr_t *bam_head = sam_hdr_read(bamIn);
   
   vector<string> tokens;
   tokenise(string(bam_head->text), tokens, "\n");
@@ -578,7 +578,7 @@ int main(int argc, char *argv[]) {
   bool pairedend=false;
   {
     bam1_t *line = bam_init1();
-    if(bam_read1(bamIn, line)>0) {
+    if(sam_read1(bamIn, bam_head, line)>=0) {
       if(readLength == -1) {
         readLength=line->core.l_qseq;
         cerr << "Getting read length from BAM...";
@@ -597,7 +597,8 @@ int main(int argc, char *argv[]) {
       exit(1);
     }
   }
-  bam_close(bamIn);
+  bam_hdr_destroy(bam_head);
+  sam_close(bamIn);
 
   if(mseqCorrection) {// correct for non-uniform coverage
 
@@ -609,17 +610,17 @@ int main(int argc, char *argv[]) {
       rawCounts[i].resize(fastas[i].seq().size(), 0);
     }
 
-    if ((bamIn = bam_open(bf, "r")) == 0) {  
+    if ((bamIn = sam_open(bf, "r")) == 0) {
       fprintf(stderr, "Failed to open BAM file %s\n", bf);
       exit(1);  
     }
 
-    bam_header_t *bam_head = bam_header_read(bamIn);  
+    bam_hdr_t *bam_head = sam_hdr_read(bamIn);
     checkSortOrder(bam_head, "queryname", cerr);
 
     bam1_t *line = bam_init1();
     int j=0;
-    while(bam_read1(bamIn, line)>0) {
+    while(sam_read1(bamIn, bam_head, line)>=0) {
       if( (line->core.flag & 0xC) == 0 ) {
         str = customRef ? extractElements(bam_head->target_name[line->core.tid], re, tgBackrefs)[0].c_str() : string(bam_head->target_name[line->core.tid]).c_str();
         if(mergeHaps) {
@@ -637,7 +638,8 @@ int main(int argc, char *argv[]) {
       j++;
       if(j>MAX_BAM_COUNT_ITERS) break;
     }
-    bam_close(bamIn);
+    bam_hdr_destroy(bam_head);
+    sam_close(bamIn);
     cerr << "done.\n";
 
     for(int i=0;i < fastas.size(); i++) transcriptCounts[i] /= (double)fastas[i].seq().size();
@@ -844,7 +846,7 @@ int main(int argc, char *argv[]) {
   vector <int> testIsizes;
 
   if(pairedend) {
-    if ((bamIn = bam_open(bf, "r")) == 0) {  
+    if ((bamIn = sam_open(bf, "r")) == 0) {
       fprintf(stderr, "Failed to open BAM file %s\n", bf);  
       exit(1);  
     }
@@ -860,12 +862,12 @@ int main(int argc, char *argv[]) {
     }
     cerr << "using first " << PAIRSFORISIZEFILTER << " proper read pairs with unambiguous insert isizes...\n";
     // get through the header
-    bam_header_read(bamIn);
+    bam_head = sam_hdr_read(bamIn);
 
     line = bam_init1();
 
     while(!bam_eof && testIsizes.size() <= PAIRSFORISIZEFILTER) {
-      if(i==0 && bam_read1(bamIn, line)<1) break;
+      if(i==0 && sam_read1(bamIn, bam_head, line)<0) break;
 
       // forget about insert size filtering if not paired-end
       if( (line->core.flag & 0x1) == 0 ) {
@@ -875,31 +877,32 @@ int main(int argc, char *argv[]) {
       }
       // skip if the query sequence itself is unmapped or the mate is unmapped 
       if( (line->core.flag & 0xC) > 0 ) {
-        if(bam_read1(bamIn, line)<1) bam_eof=true;
+        if(sam_read1(bamIn, bam_head, line)<0) bam_eof=true;
         continue;
       }
       if(line->core.isize > 0) {
-        if(readname_prev != "" && string(bam1_qname(line)) != readname_prev && same_isize) {
+        if(readname_prev != "" && string(bam_get_qname(line)) != readname_prev && same_isize) {
           testIsizes.push_back(isize_prev);
           same_isize=true;
         }
-        if(string(bam1_qname(line)) == readname_prev && isize_prev != line->core.isize) {
+        if(string(bam_get_qname(line)) == readname_prev && isize_prev != line->core.isize) {
           same_isize=false;
         }
-        if(string(bam1_qname(line)) != readname_prev && !same_isize) {
+        if(string(bam_get_qname(line)) != readname_prev && !same_isize) {
           same_isize=true;
         }
 
         isize_prev=line->core.isize;
-        readname_prev=string(bam1_qname(line));
+        readname_prev=string(bam_get_qname(line));
       }
-      if(bam_read1(bamIn, line)<1) {
+      if(sam_read1(bamIn, bam_head, line)<0) {
         bam_eof=true;
         break;
       }
     }
 
-    bam_close(bamIn);
+    bam_hdr_destroy(bam_head);
+    sam_close(bamIn);
     sort(testIsizes.begin(), testIsizes.end());
     int estthreshold = testIsizes[floor(testIsizes.size() * (100.0-TOPTHRES) / 100.0)];
     vector<int> frequencies;
@@ -1021,12 +1024,12 @@ int main(int argc, char *argv[]) {
   // Parse _pre-sorted_ BAM file and output hits
   cerr << "Parsing BAM file...";
 
-  if ((bamIn = bam_open(bf, "r")) == 0) {  
+  if ((bamIn = sam_open(bf, "r")) == 0) {
     fprintf(stderr, "Failed to open BAM file %s\n", bf);  
     exit(1);  
   }
 
-  bam_head = bam_header_read(bamIn);  
+  bam_head = sam_hdr_read(bamIn);
 
 //  boost::cmatch matches;
   boost::cmatch ma;
@@ -1046,15 +1049,15 @@ int main(int argc, char *argv[]) {
   bam_eof=false;
 
   while(!bam_eof) {
-    if(i==0 && bam_read1(bamIn, line)<1) break;
+    if(i==0 && sam_read1(bamIn, bam_head, line)<0) break;
     
     // skip if the query sequence itself is unmapped or the mate is unmapped 
     if( (line->core.flag & 0xC) > 0 ) {
-      if(bam_read1(bamIn, line)<1) bam_eof=true;
+      if(sam_read1(bamIn, bam_head, line)<0) bam_eof=true;
       continue;
     }
 
-    currentRead = string(bam1_qname(line));
+    currentRead = string(bam_get_qname(line));
 
     currentTranscripts.clear(); 
     str = customRef ? extractElements(bam_head->target_name[line->core.tid], re, tgBackrefs)[0] : string(bam_head->target_name[line->core.tid]);
@@ -1064,13 +1067,13 @@ int main(int argc, char *argv[]) {
     Alignment aln(currentRead, str, abs(line->core.isize), bam_aux_get(line,"NM") == NULL ? 0 : bam_aux2i(bam_aux_get(line,"NM")), line->core.pos, line->core.mpos);
     currentTranscripts.push_back(aln);
 
-    if(bam_read1(bamIn, line)<1) {
+    if(sam_read1(bamIn, bam_head, line)<0) {
       bam_eof=true;
       flushOutput(currentTranscripts, useIsizeFilter, expected, threshold, mergeHaps,
                   stratarem, reptranrem, isizerem, alignmentsretained, readsretained, hitsfileWriter);//cout);
       break;
     }
-    currentRead = string(bam1_qname(line)); i++;
+    currentRead = string(bam_get_qname(line)); i++;
 
     while(currentRead == currentTranscripts.back().read()) {
       // if we found a mate in paired-end data, merely increase NM for that alignment
@@ -1102,8 +1105,8 @@ int main(int argc, char *argv[]) {
         currentTranscripts.push_back(aln);
       }
 
-      if(bam_read1(bamIn, line)<1) { bam_eof=true; break; };
-      currentRead = string(bam1_qname(line)); i++;
+      if(sam_read1(bamIn, bam_head, line)<0) { bam_eof=true; break; };
+      currentRead = string(bam_get_qname(line)); i++;
     }
     
     flushOutput(currentTranscripts, useIsizeFilter, expected, threshold, mergeHaps,
@@ -1111,7 +1114,8 @@ int main(int argc, char *argv[]) {
     cout << flush;
     i++;
   }
-  bam_close(bamIn);
+  bam_hdr_destroy(bam_head);
+  sam_close(bamIn);
   cerr << "done.\n"
        << "Alignments removed by mismatch stratum filter: " << stratarem << "." << endl
        << "Alignments removed by repetitive transcript filter: " << reptranrem << "." << endl
