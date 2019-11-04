@@ -1,3 +1,5 @@
+#!/bin/bash
+
 for c in bam2hits hitstools mmseq mmdiff mmcollapse extract_transcripts t2g_hits 'fastagrep.sh -h' testregexp.rb filterGTF.rb haploref.rb ensembl_gtf_to_gff.pl; do
   echo '`'$c'`' | sed -e 's/ -h//'
   echo ""
