@@ -24,7 +24,7 @@ readmmseq <- function( mmseq_files = grep("gene|identical", dir( pattern="\\.mms
   percentiles_proportion <- list()
 	cat( "Reading mmseq output files\n" )
 	for( i in 1:length(mmseq_files) ) {
-		dat = read.table( mmseq_files[i], header=TRUE, stringsAsFactors=FALSE, check.names=FALSE, sep="\t")
+		dat = read.table( mmseq_files[i], header=TRUE, stringsAsFactors=FALSE, check.names=FALSE, sep="\t", quote="")
     if(! any(colnames(dat)=="log_mu") ||
        ! any(colnames(dat)=="sd") || 
        ! any(colnames(dat)=="mcse") || 
