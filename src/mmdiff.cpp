@@ -700,7 +700,7 @@ int main(int argc, char** argv) {
   if(!fixalpha && (!mcmc.Misnil() || !mcmc.Pisnil(1))) cerr << "|";
   if(!mcmc.Misnil()) cerr << "M";
   if(!mcmc.Pisnil(1) && (!fixalpha || !mcmc.Misnil())) cerr << "|";
-  if(!mcmc.Pisnil(1)) cerr << "P1";
+  if(!mcmc.Pisnil(1)) cerr << "P0";
   cerr << "]):\n";
   Z= ones(P1.n_rows, fixalpha ? 0 : 1);
   if(!mcmc.Misnil()) Z.insert_cols(Z.n_cols,M);
