@@ -1,6 +1,7 @@
 # for static compilation: STATIC=1 make
 # for debug: make DEBUG=1
-# linking requires module load gcc/4.9.2 samtools gsl atlas lapack armadillo zlib boost
+# linking requires module load samtools gsl lapack armadillo zlib boost
+# tested with gcc 5.4
 
 SUFFIX = # set on command line for static compilation
 MACROS = -DVERSION=$(shell echo `cat VERSION`)
@@ -12,7 +13,7 @@ BINDIR=../bin
 
 CC = gcc
 CXX = g++
-LIBS = -lgsl -lgslcblas -lboost_regex -lhts -lboost_iostreams -lz -llapack -lblas -latlas
+LIBS = -lgsl -lgslcblas -lboost_regex -lhts -lboost_iostreams -lz -llapack -lblas 
 OMP = -fopenmp
 OPT = -O3
 OPTSAFE = -O2
