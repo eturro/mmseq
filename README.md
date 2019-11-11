@@ -371,7 +371,7 @@ The [MMSEQ package](#installation) comes with statically-linked binaries for 64-
 - [Boost C++ libraries](http://boost.org/)
 - [GNU Scientific Library](http://www.gnu.org/software/gsl)
 - [Armadillo C++ linear algebra library](http://arma.sf.net) (with [lapack](http://www.netlib.org/lapack) and [blas](http://www.netlib.org/blas))
-- [SAMtools library](http://samtools.sourceforge.net/)
+- [HTSlib library](http://htslib.org/)
 
 Then clone the GitHub repository and run `make` from the `src` directory, which will place the binaries in the `bin` directory:
 

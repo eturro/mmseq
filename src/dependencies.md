@@ -12,8 +12,8 @@
   - Fedora/CentOS/Red Hat/etc: `yum install gsl`
 - [Armadillo C++ linear algebra library](http://arma.sf.net)
   - Mac OS X+[Homebrew](http://brew.sh/): `brew install homebrew/science/openblas; brew install homebrew/dupes/lapack; brew install armadillo`
-- [SAMtools library](http://samtools.sourceforge.net/)
-  - Mac OS X+[Homebrew](http://brew.sh/): `brew install samtools; export CPLUS_INCLUDE_PATH=$CPLUS_INCLUDE_PATH:/usr/local/include/bam`
+- [HTSlib library](http://htslib.org/)
+  - Mac OS X+[Homebrew](http://brew.sh/): `brew install htslib`
 
 Note that due to a lack of OpenMP support in Apple's clang compiler (as of El Capitan), the Mac binaries will be single-threaded.
 
