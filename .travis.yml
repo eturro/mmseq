@@ -1,0 +1,25 @@
+dist: bionic
+matrix:
+  include:
+    - name: ubuntu
+      language: cpp
+      compiler: gcc
+      install:
+        - |
+          travis_retry sudo apt-get install \
+            gfortran \
+            libboost-all-dev \
+            libgsl-dev \
+            libhts-dev \
+            libarmadillo-dev
+      script:
+        - ./test.sh
+    - name: fedora
+      language: minimal
+      services: docker
+      install:
+        - travis_retry docker build --rm -t mmseq -f Dockerfile-fedora .
+      script:
+        - docker run --rm -t mmseq ./test.sh
+  allow_failures:
+  fast_finish: true
