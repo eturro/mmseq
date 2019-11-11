@@ -72,13 +72,9 @@ string revcomp(string str) {
   string res;
   for(int i=str.size()-1; i >= 0; i--) {
     if(str[i]=='A') res += 'T';
-    if(str[i]=='a') res += 't';
     if(str[i]=='T') res += 'A';
-    if(str[i]=='t') res += 'a';
     if(str[i]=='G') res += 'C';
-    if(str[i]=='g') res += 'c';
     if(str[i]=='C') res += 'G';
-    if(str[i]=='c') res += 'g';
   }
   return(res);
 }
