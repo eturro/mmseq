@@ -17,7 +17,7 @@ LIBS = -lgsl -lgslcblas -lboost_regex -lhts -lboost_iostreams -lz -llapack -lbla
 OMP = -fopenmp
 OPT = -O3
 OPTSAFE = -O2
-#CXXFLAGS = -std=c++11
+CXXFLAGS = -std=c++11
 
 ifeq ($(shell echo `uname -s`),Darwin)
 #  CLEANSUFFIX = $(shell echo `cat VERSION`-`uname -s`-`ar -x /opt/local/lib/libgsl.a rng.o && file rng.o | sed -E 's/.*\ (.*)/\1/'`)
