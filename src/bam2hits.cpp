@@ -1058,22 +1058,25 @@ int main(int argc, char *argv[]) {
     }
 
     currentRead = string(bam_get_qname(line));
+//    cerr << "currentRead: " << currentRead << " " << string(bam_head->target_name[line->core.tid]) << endl;
 
     currentTranscripts.clear(); 
     str = customRef ? extractElements(bam_head->target_name[line->core.tid], re, tgBackrefs)[0] : string(bam_head->target_name[line->core.tid]);
+  //  cerr << "str: " << str << endl;
     if(mergeHaps) {
       str = stripHapSuffix(str);
     }
     Alignment aln(currentRead, str, abs(line->core.isize), bam_aux_get(line,"NM") == NULL ? 0 : bam_aux2i(bam_aux_get(line,"NM")), line->core.pos, line->core.mpos);
     currentTranscripts.push_back(aln);
 
-    if(sam_read1(bamIn, bam_head, line)<0) {
-      bam_eof=true;
-      flushOutput(currentTranscripts, useIsizeFilter, expected, threshold, mergeHaps,
-                  stratarem, reptranrem, isizerem, alignmentsretained, readsretained, hitsfileWriter);//cout);
-      break;
-    }
+//    if(sam_read1(bamIn, bam_head, line)<0) {
+//      bam_eof=true;
+//      flushOutput(currentTranscripts, useIsizeFilter, expected, threshold, mergeHaps,
+//                  stratarem, reptranrem, isizerem, alignmentsretained, readsretained, hitsfileWriter);//cout);
+//      break;
+//    }
     currentRead = string(bam_get_qname(line)); i++;
+//    cerr << "currentRead2: " << currentRead << " " << string(bam_head->target_name[line->core.tid]) << endl;
 
     while(currentRead == currentTranscripts.back().read()) {
       // if we found a mate in paired-end data, merely increase NM for that alignment
@@ -1086,10 +1089,14 @@ int main(int argc, char *argv[]) {
           if(mergeHaps) {
             str = stripHapSuffix(str);
           }
+     //     cerr << ait->transcript() << "," << str << "; " << ait->NM() << "+" << bam_aux2i(bam_aux_get(line,"NM")) << endl;
           if(ait->transcript() == str &&           
             ait->pos() == line->core.mpos && ait->mpos() == line->core.pos) {
-            ait->NM(ait->NM() + bam_aux_get(line,"NM") == NULL ? 0 : bam_aux2i(bam_aux_get(line,"NM")));
+            int f=ait->NM() + (bam_aux_get(line,"NM") == NULL ? 0 : bam_aux2i(bam_aux_get(line,"NM")));
+      //      cerr << "Found Mate. Setting to " << f << endl;
+            ait->NM(f);
             foundMate=true;
+       //     cerr << "Found Mate. Total for " << ait->transcript() << ": " << ait->NM() << "\n";
             break;
           }
         }
@@ -1105,7 +1112,12 @@ int main(int argc, char *argv[]) {
         currentTranscripts.push_back(aln);
       }
 
-      if(sam_read1(bamIn, bam_head, line)<0) { bam_eof=true; break; };
+      if(sam_read1(bamIn, bam_head, line)<0) {
+        bam_eof=true; 
+        flushOutput(currentTranscripts, useIsizeFilter, expected, threshold, mergeHaps,
+                  stratarem, reptranrem, isizerem, alignmentsretained, readsretained, hitsfileWriter);//cout);
+        break;
+      }
       currentRead = string(bam_get_qname(line)); i++;
     }
     
