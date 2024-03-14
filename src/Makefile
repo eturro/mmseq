@@ -4,7 +4,7 @@
 # tested with gcc 5.4
 
 SUFFIX = # set on command line for static compilation
-MACROS = -DVERSION=$(shell echo `cat VERSION`)
+MACROS = -DMMSEQVERSION=$(shell echo `cat MMSEQVERSION`)
 ifdef DEBUG
   MACROS += -DDEBUG
 endif
@@ -20,12 +20,12 @@ OPTSAFE = -O2
 CXXFLAGS = -std=c++11
 
 ifeq ($(shell echo `uname -s`),Darwin)
-#  CLEANSUFFIX = $(shell echo `cat VERSION`-`uname -s`-`ar -x /opt/local/lib/libgsl.a rng.o && file rng.o | sed -E 's/.*\ (.*)/\1/'`)
-   CLEANSUFFIX = -mac # $(shell echo -`cat VERSION`-`uname -s`-`uname -m`)
+#  CLEANSUFFIX = $(shell echo `cat MMSEQVERSION`-`uname -s`-`ar -x /opt/local/lib/libgsl.a rng.o && file rng.o | sed -E 's/.*\ (.*)/\1/'`)
+   CLEANSUFFIX = -mac # $(shell echo -`cat MMSEQVERSION`-`uname -s`-`uname -m`)
    OMP = 
 endif
 ifeq ($(shell echo `uname -s`),Linux)
-  CLEANSUFFIX = -linux # $(shell echo -`cat VERSION`-`uname -s`-`uname -m`)
+  CLEANSUFFIX = -linux # $(shell echo -`cat MMSEQVERSION`-`uname -s`-`uname -m`)
   LIBS += -lgfortran
 endif
 ifdef STATIC

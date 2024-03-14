@@ -55,8 +55,8 @@
 #define QUOTE_(x) #x
 #define QUOTE(x) QUOTE_(x)
 
-#ifndef VERSION
-  #define VERSION ?
+#ifndef MMSEQVERSION
+  #define MMSEQVERSION ?
 #endif
 
 #define HITCHAR '>'
@@ -258,7 +258,7 @@ int main(int argc, char **argv) {
       printUsage(argv[0], cerr);
       exit(1);
     } else if(arguments.size() > 0 && ( arguments[0]=="-v" || arguments[0]=="--version" || arguments[0]=="-version")) {
-      cerr << "mmseq-" << QUOTE(VERSION) << endl;
+      cerr << "mmseq-" << QUOTE(MMSEQVERSION) << endl;
       exit(1);
     } else {
       if(arguments.size()==2) {

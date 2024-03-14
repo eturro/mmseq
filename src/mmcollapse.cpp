@@ -50,8 +50,8 @@
 #define QUOTE_(x) #x
 #define QUOTE(x) QUOTE_(x)
 
-#ifndef VERSION
-  #define VERSION ?
+#ifndef MMSEQVERSION
+  #define MMSEQVERSION ?
 #endif
 
 #define TRACELEN 1024

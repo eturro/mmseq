@@ -48,8 +48,8 @@ extern "C" {
 #define QUOTE_(x) #x
 #define QUOTE(x) QUOTE_(x)
 
-#ifndef VERSION
-  #define VERSION ?
+#ifndef MMSEQVERSION
+  #define MMSEQVERSION ?
 #endif
 
 #define TOPTHRES 2.5 // use top 2.5% of isizes to set default deviation threshold
@@ -440,7 +440,7 @@ int main(int argc, char *argv[]) {
   for(int i=1; i < argc; i++) arguments.push_back(string(argv[i]));
 
   if(find(arguments.begin(), arguments.end(), string("-v")) != arguments.end()) {
-    cerr << "bam2hits-" << QUOTE(VERSION) << endl;
+    cerr << "bam2hits-" << QUOTE(MMSEQVERSION) << endl;
     exit(1);
   }
 
