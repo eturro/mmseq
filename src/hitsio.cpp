@@ -443,5 +443,8 @@ bool HitsfileReader::readReadMapRecordTranscriptID(string &readID) {
 		return (readReadMapRecordTranscriptIDSchema0(readID));
 	} else if (hitsfileSchema == 1) {
 		return (readReadMapRecordTranscriptIDSchema1(readID));
-	}
+	} else {
+    cerr << "hitsfileSchema should never not equal 0 or 1\n";
+    exit(1);
+  }
 }

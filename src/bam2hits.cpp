@@ -650,7 +650,7 @@ int main(int argc, char *argv[]) {
     cerr << "Mean reads per nucleotide of " << MAX_T_COUNTS << "th transcript: " << thres << endl;
   
     char cd[L_tmpnam+1];
-    if(tmpnam (cd) == NULL) {
+    if(mkstemp (cd) == -1) {
       cerr << "Could not create temporary file name.\n";
       exit(1);
     }
@@ -669,13 +669,13 @@ int main(int argc, char *argv[]) {
 
     cerr << "Calculating 'mseq' coefficients...\n";
     char cf[L_tmpnam+1];
-    if(tmpnam (cf) == NULL) {
+    if(mkstemp (cf) == -1) {
       cerr << "Could not create temporary file name.\n";
       exit(1);
     }
     
     char runmseq[L_tmpnam+1];
-    if(tmpnam (runmseq) == NULL) {
+    if(mkstemp (runmseq) == -1) {
       cerr << "Could not create temporary file name.\n";
       exit(1);
     }

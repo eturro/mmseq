@@ -109,7 +109,7 @@ int main(int argc, char **argv) {
         if(find(comb.begin(), comb.end(), t2g[str]) == comb.end()) comb.push_back(t2g[str]); 
       }
       sort(comb.begin(), comb.end());
-      unique(comb.begin(), comb.end());
+      (void)unique(comb.begin(), comb.end());
       for(strit=comb.begin(); strit != comb.end(); strit++) {
         cout << *strit << endl;
       }
